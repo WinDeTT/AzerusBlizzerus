@@ -1,0 +1,4 @@
+name: AzerusBlizzerus
+version: '1.0-SNAPSHOT'
+main: org.windett.azerusBlizzerus.Main
+api-version: '1.21'

@@ -1,0 +1,79 @@
+package org.windett.azerusBlizzerus;
+
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.command.CommandMap;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.windett.azerusBlizzerus.command.camera.CameraCommand;
+import org.windett.azerusBlizzerus.command.context.ContextCommand;
+import org.windett.azerusBlizzerus.command.pathRecorder.PathRecorderCommand;
+import org.windett.azerusBlizzerus.context.ContextListener;
+import org.windett.azerusBlizzerus.events.player.PlayerJoinQuitListener;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.windett.azerusBlizzerus.context.ContextManager.registerGlobalContext;
+
+public final class Main extends JavaPlugin {
+
+    public static Main instance;
+    public static File cameraRecsFolder;
+    public static File pathRecsFolder;
+
+    @Override
+    public void onEnable() {
+        instance = this;
+        try {
+            final ServerFile serverFile = new ServerFile();
+            cameraRecsFolder = serverFile.getCameraRecsFolder();
+            pathRecsFolder = serverFile.getPathRecsFolder();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        registerGlobalContext();
+
+        final PluginManager pm = Bukkit.getPluginManager();
+
+        // final CutsceneChunksListener cutsceneChunksListener = new CutsceneChunksListener();
+        final PlayerJoinQuitListener playerJoinQuitListener = new PlayerJoinQuitListener();
+        final ContextListener ctxListen = new ContextListener();
+
+        //  pm.registerEvents(cutsceneChunksListener, this);
+        pm.registerEvents(playerJoinQuitListener, this);
+        pm.registerEvents(ctxListen, this);
+
+        CommandMap commandMap = Bukkit.getCommandMap();
+        ContextCommand ctxCommand = new ContextCommand("context", "Context management", "/context", Arrays.asList("ctx", "ct"));
+        CameraCommand camCommand = new CameraCommand("camera", "Camera creation", "/camera", List.of("cam"));
+        PathRecorderCommand pathRecCommand = new PathRecorderCommand("pathRecorder", "Path Recorder management", "/pathrec", List.of("pr"));
+        commandMap.register("azerusblizzerus", ctxCommand);
+        commandMap.register("azerusblizzerus", camCommand);
+        commandMap.register("azerusblizzerus", pathRecCommand);
+    }
+
+    @Override
+    public void onDisable() {
+        final World world = Bukkit.getWorld("world");
+        if (world == null) return;
+        final File worldFolder = world.getWorldFolder();
+        if (!worldFolder.exists()) return;
+        final File worldEntitiesFolder = new File(worldFolder, "entities");
+        if (!worldEntitiesFolder.exists() && !worldEntitiesFolder.isDirectory()) return;
+        File[] entityFiles = worldEntitiesFolder.listFiles((dir, name) ->
+                name.endsWith(".mca") || name.endsWith(".mcc"));
+
+        if (entityFiles == null) return;
+        for (File file : entityFiles) {
+            if (file.delete()) {
+                Bukkit.getLogger().info("Файл" + file.getName() + " успешно удалён!");
+            }
+            else {
+                Bukkit.getLogger().info("Файл" + file.getName() + " удалить не удалось!");
+            }
+        }
+    }
+}
