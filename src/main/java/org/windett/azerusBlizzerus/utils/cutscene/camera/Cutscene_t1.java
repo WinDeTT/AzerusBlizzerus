@@ -22,11 +22,7 @@ public class Cutscene_t1 {
         final Camera camera = new Camera(null, points.getFirst());
         player.setGameMode(GameMode.SPECTATOR);
         player.teleport(points.getFirst());
-        if (!player.getChunk().isLoaded()) {
-            camera.remove();
-            startRecordedCameraFlying(player, points, time, interpol, target);
-            return;
-        }
+
         Bukkit.getScheduler().runTaskLater(Main.instance, () -> {
             playerData.setInCutscene(true);
             camera.setPosition(points.getFirst());
@@ -42,8 +38,8 @@ public class Cutscene_t1 {
                         camera.remove();
                     }
                 }
-            }.runTaskTimer(Main.instance, 20L, 20L);
+            }.runTaskTimer(Main.instance, delay, delay);
 
-        },2L);
+        }, 20L);
     }
 }

@@ -14,7 +14,6 @@ import org.windett.azerusBlizzerus.context.ContextManager;
 import org.windett.azerusBlizzerus.utils.cutscene.Scene;
 import org.windett.azerusBlizzerus.utils.cutscene.camera.Camera;
 import org.windett.azerusBlizzerus.rpg.player.data.PlayerData;
-import org.windett.azerusBlizzerus.utils.cutscene.camera.CameraManager;
 import org.windett.azerusBlizzerus.utils.pathRecorder.ScriptMoveManager;
 import org.windett.azerusBlizzerus.utils.pathRecorder.ScriptedMovement;
 
@@ -23,13 +22,16 @@ import java.util.*;
 
 public class PlayerJoinQuitListener implements Listener {
 
+    private final ContextManager ctxManager = Main.tweakManager.getContextManager();
+    private final ScriptMoveManager scriptMoveManager = Main.tweakManager.getScriptMoveManager();
+
     final Location worldFirstSpawnLocation = new Location(Bukkit.getWorld("world"), -881.932, 66.0, -1575.988, -89.8F, -0.5F);
     public static final Map<UUID, PlayerData> PLAYERS = new HashMap<>();
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void join(PlayerJoinEvent e) {
         final Player player = e.getPlayer();
-        ContextManager.setUpEntityContext(player, "global");
+        ctxManager.setUpEntityContext(player, "global");
         if (!PLAYERS.containsKey(player.getUniqueId())) {
             PLAYERS.put(player.getUniqueId(), new PlayerData(player.getUniqueId()));
         }
@@ -42,7 +44,7 @@ public class PlayerJoinQuitListener implements Listener {
 
 
         final String privateStartContext = ("prstart_" + player.getName()).toLowerCase();
-        ContextManager.registerContext(privateStartContext, false);
+        ctxManager.registerContext(privateStartContext, false);
 
         Bukkit.getScheduler().runTaskLater(Main.instance, () -> {
             Scene joinScene = new Scene(990);
@@ -69,16 +71,16 @@ public class PlayerJoinQuitListener implements Listener {
                 throw new RuntimeException(ex);
             }
             for (Camera camera : joinScene.cameraList.values()) {
-                ContextManager.moveToContext(camera.getCameraEntity(), privateStartContext);
+                ctxManager.moveToContext(camera.getCameraEntity(), privateStartContext);
             }
-            ContextManager.moveToContext(player, privateStartContext);
+            ctxManager.moveToContext(player, privateStartContext);
             joinScene.setSceneWatcher(player, true);
 
             joinScene.executeAtStart(() -> {
                 joinScene.getCamera(2).setShaking(10, Camera.ShakeIntensive.HIGH);
                 joinScene.getCamera(4).setShaking(10, Camera.ShakeIntensive.MEDIUM);
                 joinScene.getCamera(5).setShaking(10, Camera.ShakeIntensive.HIGH);
-                ContextManager.moveToContext(joinScene.sceneWatcher.getWatcherFakePlayer(), privateStartContext);
+                ctxManager.moveToContext(joinScene.sceneWatcher.getWatcherFakePlayer(), privateStartContext);
 
 
                 Mannequin npc1 = (Mannequin) player.getWorld().spawnEntity(new Location(player.getWorld(), -882.924505403004, 67.0, -1545.9963108677773, -179.4089F, 0.0F), EntityType.MANNEQUIN);
@@ -96,12 +98,12 @@ public class PlayerJoinQuitListener implements Listener {
                 for (int number : npcs[0].keySet()) {
                     Mannequin npc = npcs[0].get(number);
                     if (npc == null || !npc.isValid()) continue;
-                    ContextManager.moveToContext(npc, privateStartContext);
+                    ctxManager.moveToContext(npc, privateStartContext);
                     npc.setImmovable(true);
                     npc.setInvulnerable(true);
                     ScriptedMovement movement = new ScriptedMovement();
                     try {
-                        ScriptMoveManager.loadPathFromFile(player.getWorld(), movement, "cut1_npc" + number + ".yml");
+                        scriptMoveManager.loadPathFromFile(player.getWorld(), movement, "cut1_npc" + number + ".yml");
                     } catch (FileNotFoundException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -171,11 +173,11 @@ public class PlayerJoinQuitListener implements Listener {
                 for (int number : npcs[0].keySet()) {
                     Mannequin npc = npcs[0].get(number);
                     if (npc == null) continue;
-                    ScriptedMovement move = ScriptMoveManager.getScriptedMovementFromEntity(npc);
+                    ScriptedMovement move = scriptMoveManager.getScriptedMovementFromEntity(npc);
                     if (move != null) {
                         move.stop(npc, true);
                         move.clearAll();
-                        ScriptMoveManager.mobPaths.remove(npc.getUniqueId());
+                        scriptMoveManager.getMobPaths().remove(npc.getUniqueId());
 
                     }
                     npc.remove();
@@ -189,15 +191,15 @@ public class PlayerJoinQuitListener implements Listener {
                 pathFollow.setRubberNearDistance(4, 2);
                 pathFollow.setRubberFarDistance(12, 16);
                 try {
-                    ScriptMoveManager.loadPathFromFile(player.getWorld(), pathFollow, "c1_fpath1.yml");
+                    scriptMoveManager.loadPathFromFile(player.getWorld(), pathFollow, "c1_fpath1.yml");
                 } catch (FileNotFoundException ex) {
                     throw new RuntimeException(ex);
                 }
-                ScriptMoveManager.mobPaths.put(startNpcMovable.getUniqueId(), pathFollow);
-                ContextManager.moveToContext(startNpcMovable, privateStartContext);
+                scriptMoveManager.getMobPaths().put(startNpcMovable.getUniqueId(), pathFollow);
+                ctxManager.moveToContext(startNpcMovable, privateStartContext);
                 pathFollow.runReplayRecording(startNpcMovable, 0, true, () -> {
                     pathFollow.clearAll();
-                    ScriptMoveManager.mobPaths.remove(startNpcMovable.getUniqueId());
+                    scriptMoveManager.getMobPaths().remove(startNpcMovable.getUniqueId());
                     if (startNpcMovable.isValid()) {
                         startNpcMovable.remove();
                     }
@@ -217,6 +219,7 @@ public class PlayerJoinQuitListener implements Listener {
         if (playerData == null) return;
         if (playerData.isInCutscene()) e.setCancelled(true);
     }
+
 
     @EventHandler
     public void sneak(PlayerToggleSneakEvent e) {
@@ -240,7 +243,7 @@ public class PlayerJoinQuitListener implements Listener {
         final PlayerData playerData = PLAYERS.get(player.getUniqueId());
         if (playerData == null) return;
         if (playerData.isInCutscene()) e.setCancelled(true);
-        Map<Player, LivingEntity> targetMap = CameraManager.playerCameraCreationTarget;
+        Map<Player, LivingEntity> targetMap = Main.tweakManager.getCameraManager().getPlayerCameraCreationTarget();
         if (targetMap.containsKey(player) && targetMap.get(player) == null) {
             targetMap.put(player, (LivingEntity) e.getRightClicked());
             player.sendMessage("Выбрана сущность: " + e.getRightClicked().getUniqueId());

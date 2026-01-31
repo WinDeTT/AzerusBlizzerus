@@ -10,19 +10,19 @@ import org.windett.azerusBlizzerus.command.context.ContextCommand;
 import org.windett.azerusBlizzerus.command.pathRecorder.PathRecorderCommand;
 import org.windett.azerusBlizzerus.context.ContextListener;
 import org.windett.azerusBlizzerus.events.player.PlayerJoinQuitListener;
+import org.windett.azerusBlizzerus.utils.pathRecorder.ScriptMoveListener;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.windett.azerusBlizzerus.context.ContextManager.registerGlobalContext;
-
 public final class Main extends JavaPlugin {
 
     public static Main instance;
     public static File cameraRecsFolder;
     public static File pathRecsFolder;
+    public static TweakManager tweakManager;
 
     @Override
     public void onEnable() {
@@ -34,16 +34,18 @@ public final class Main extends JavaPlugin {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        registerGlobalContext();
 
         final PluginManager pm = Bukkit.getPluginManager();
+        tweakManager = new TweakManager();
+        tweakManager.getContextManager().registerGlobalContext();
 
-        // final CutsceneChunksListener cutsceneChunksListener = new CutsceneChunksListener();
         final PlayerJoinQuitListener playerJoinQuitListener = new PlayerJoinQuitListener();
+        final ScriptMoveListener scriptMoveListener = new ScriptMoveListener();
         final ContextListener ctxListen = new ContextListener();
 
-        //  pm.registerEvents(cutsceneChunksListener, this);
+
         pm.registerEvents(playerJoinQuitListener, this);
+        pm.registerEvents(scriptMoveListener, this);
         pm.registerEvents(ctxListen, this);
 
         CommandMap commandMap = Bukkit.getCommandMap();

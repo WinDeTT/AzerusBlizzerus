@@ -66,7 +66,7 @@ public class Camera {
         this.inScene = scene;
         this.cameraEntity = (ItemDisplay) location.getWorld().spawnEntity(location, EntityType.ITEM_DISPLAY);
         this.cameraEntity.setItemStack(displayStack);
-        CameraManager.workingCameras.add(this);
+        Main.tweakManager.getCameraManager().getWorkingCameras().add(this);
     }
 
     public void moveTo(Location point, long time, int interpolation) { // thanks DeepSeek
@@ -254,7 +254,7 @@ public class Camera {
     public void remove() {
         stopCamera();
         cameraEntity.remove();
-        CameraManager.workingCameras.remove(this);
+        Main.tweakManager.getCameraManager().getWorkingCameras().remove(this);
     }
 
     public boolean isCameraAlive() {

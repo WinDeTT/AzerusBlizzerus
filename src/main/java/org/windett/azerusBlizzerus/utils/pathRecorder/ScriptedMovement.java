@@ -3,12 +3,13 @@ package org.windett.azerusBlizzerus.utils.pathRecorder;
 import io.papermc.paper.entity.LookAnchor;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.network.ServerPlayerConnection;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftEntity;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.entity.*;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
@@ -20,10 +21,17 @@ import java.util.List;
 
 public class ScriptedMovement {
 
+    private final ScriptMoveManager scriptMoveManager = Main.tweakManager.getScriptMoveManager();;
+
     private Location startLoc = null;
-    private final List<PathPositionData> positionDataList = new ArrayList<>();
+    private final List<PathTickData> positionDataList = new ArrayList<>();
+
+    public int getCurrentIndex() {
+        return currentIndex;
+    }
+
     private int currentIndex = 0;
-    private enum Mode{
+    public enum Mode{
         RECORDING,
         REPLAYING;
     }
@@ -41,6 +49,11 @@ public class ScriptedMovement {
             this.delay = delay;
         }
     }
+
+    public Mode getPathMode() {
+        return pathMode;
+    }
+
     private Mode pathMode = Mode.RECORDING;
 
     public BukkitTask getRunnable() {
@@ -91,11 +104,11 @@ public class ScriptedMovement {
                 translateTickForPlayer(target, pathMode);
                 currentLoc = target.getLocation();
                 Vector worldOffset = currentLoc.toVector().subtract(startLoc.toVector());
-                Vector localOffset = ScriptMoveManager.rotateVector(worldOffset, -startLoc.getYaw(), -startLoc.getPitch());
+                Vector localOffset = scriptMoveManager.rotateVector(worldOffset, -startLoc.getYaw(), -startLoc.getPitch());
                 float relativeYaw = currentLoc.getYaw() - startLoc.getYaw();
                 float relativePitch = currentLoc.getPitch() - startLoc.getPitch();
 
-                positionDataList.add(new PathPositionData(localOffset, Pair.of(relativeYaw, relativePitch)));
+                positionDataList.add(new PathTickData(localOffset, Pair.of(relativeYaw, relativePitch), Pair.of(false,false)));
                 currentIndex++;
             }
         }.runTaskTimer(Main.instance, 0L, 1L);
@@ -115,11 +128,18 @@ public class ScriptedMovement {
         if (this.currentIndex >= positionDataList.size()) currentIndex = 0;
         if (target instanceof LivingEntity && (!(target instanceof Player))) {
             ((LivingEntity) target).setAI(false);
+            if (target instanceof Zombie) {
+                ((Zombie) target).setShouldBurnInDay(false);
+            }
+            if (target instanceof Skeleton) {
+                ((Skeleton) target).setShouldBurnInDay(false);
+            }
         }
         final Location startLoc;
         if (useOriginalStartPosition) startLoc = this.getStartLocation().clone();
         else {
             startLoc = target.getLocation().clone();
+            startLoc.setPitch(0.0F);
         }
 
         CraftEntity craftTarget = (CraftEntity) target;
@@ -165,7 +185,7 @@ public class ScriptedMovement {
 
                 if (tickDelay >= requestDelay) {
                     current = target.getLocation();
-                    worldOffset = ScriptMoveManager.rotateVector(positionDataList.get(currentIndex).getLocOffset(), startLoc.getYaw(), startLoc.getPitch());
+                    worldOffset = scriptMoveManager.rotateVector(positionDataList.get(currentIndex).getLocOffset(), startLoc.getYaw(), startLoc.getPitch());
                     moveLoc = startLoc.clone().add(worldOffset);
                     moveLoc.setYaw(startLoc.getYaw() + positionDataList.get(currentIndex).getRotation().first());
                     moveLoc.setPitch(startLoc.getPitch() + positionDataList.get(currentIndex).getRotation().second());
@@ -173,6 +193,14 @@ public class ScriptedMovement {
                     craftTarget.getHandle().setRot(moveLoc.getYaw(), moveLoc.getPitch());
                     if (requestDelay > 1 && (rubberTarget != null && rubberTarget.isValid())) {
                         if (lookRubberTargetWhenFar) target.lookAt(rubberTarget.getLocation(), LookAnchor.EYES);
+                    }
+                    if (target instanceof LivingEntity le) {
+                        if (positionDataList.get(currentIndex).getSwingHands().first()) {
+                            le.swingMainHand();
+                        }
+                        if (positionDataList.get(currentIndex).getSwingHands().second()) {
+                            le.swingOffHand();
+                        }
                     }
                     tickDelay = 1;
                     currentIndex = newIndex;
@@ -184,6 +212,12 @@ public class ScriptedMovement {
                 if (currentIndex >= positionDataList.size()) {
                     if (target instanceof LivingEntity && (!(target instanceof Player))) {
                         ((LivingEntity) target).setAI(true);
+                        if (target instanceof Zombie) {
+                            ((Zombie) target).setShouldBurnInDay(true);
+                        }
+                        if (target instanceof Skeleton) {
+                            ((Skeleton) target).setShouldBurnInDay(true);
+                        }
                     }
                     stop(target, true);
                     if (executeAtEnd != null) {
@@ -261,6 +295,6 @@ public class ScriptedMovement {
         return this.positionDataList.isEmpty();
     }
 
-    public List<PathPositionData> getPathList() {return this.positionDataList;}
+    public List<PathTickData> getPathList() {return this.positionDataList;}
 
 }

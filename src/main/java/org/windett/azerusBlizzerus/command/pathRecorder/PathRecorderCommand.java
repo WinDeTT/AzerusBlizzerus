@@ -9,6 +9,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.windett.azerusBlizzerus.Main;
 import org.windett.azerusBlizzerus.context.ContextManager;
 import org.windett.azerusBlizzerus.context.WorldContext;
 import org.windett.azerusBlizzerus.utils.pathRecorder.ScriptMoveManager;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class PathRecorderCommand extends BukkitCommand {
+
+    private final ScriptMoveManager scriptMoveManager = Main.tweakManager.getScriptMoveManager();
 
     public PathRecorderCommand(@NotNull String name, @NotNull String description, @NotNull String usageMessage, @NotNull List<String> aliases) {
         super(name, description, usageMessage, aliases);
@@ -41,11 +44,11 @@ public class PathRecorderCommand extends BukkitCommand {
         switch (args[0]) {
             case "create" -> {
                 ScriptedMovement scriptMove = new ScriptedMovement();
-                ScriptMoveManager.mobPaths.put(player.getUniqueId(), scriptMove);
+                scriptMoveManager.getMobPaths().put(player.getUniqueId(), scriptMove);
                 player.sendMessage(Component.text("Создан новый (чистый) путь!"));
             }
             case "record" -> {
-                ScriptedMovement move = ScriptMoveManager.getScriptedMovementFromEntity(player);
+                ScriptedMovement move = scriptMoveManager.getScriptedMovementFromEntity(player);
                 if (move == null) {
                     player.sendMessage(Component.text("Вам необходимо создать новый путь"));
                     player.sendMessage(Component.text("/pathrec create"));
@@ -58,7 +61,7 @@ public class PathRecorderCommand extends BukkitCommand {
                 move.runStartRecord(player);
             }
             case "play" -> {
-                ScriptedMovement move = ScriptMoveManager.getScriptedMovementFromEntity(player);
+                ScriptedMovement move = scriptMoveManager.getScriptedMovementFromEntity(player);
                 if (move == null) {
                     return true;
                 }
@@ -76,7 +79,7 @@ public class PathRecorderCommand extends BukkitCommand {
                 player.sendMessage(Component.text("Начато воспроизведение записанного ранее пути."));
             }
             case "stop" -> {
-                ScriptedMovement move = ScriptMoveManager.getScriptedMovementFromEntity(player);
+                ScriptedMovement move = scriptMoveManager.getScriptedMovementFromEntity(player);
                 if (move == null) {
                     return true;
                 }
@@ -87,7 +90,7 @@ public class PathRecorderCommand extends BukkitCommand {
                 player.sendMessage(Component.text("Текущая операция (запись/воспроизведение) остановлена!"));
             }
             case "launch" -> {
-                ScriptedMovement movement = ScriptMoveManager.getScriptedMovementFromEntity(player);
+                ScriptedMovement movement = scriptMoveManager.getScriptedMovementFromEntity(player);
                 if (movement == null) {
                     return true;
                 }
@@ -99,7 +102,7 @@ public class PathRecorderCommand extends BukkitCommand {
                     player.sendMessage(Component.text("/pathrec launch <entityType>"));
                     return true;
                 }
-                WorldContext playerContext = ContextManager.getEntityContext(player);
+                WorldContext playerContext = Main.tweakManager.getContextManager().getEntityContext(player);
                 if (playerContext == null) {
                     player.sendMessage(Component.text("Ошибка! У вас не установлен контекст!"));
                     return true;
@@ -139,7 +142,7 @@ public class PathRecorderCommand extends BukkitCommand {
         if (!(sender instanceof Player player)) {
             return List.of();
         }
-        if (ScriptMoveManager.mobPaths.containsKey(player.getUniqueId())) {
+        if (scriptMoveManager.getMobPaths().containsKey(player.getUniqueId())) {
             if (args.length == 1) {
                 return List.of("create", "record", "play", "stop", "launch");
             }

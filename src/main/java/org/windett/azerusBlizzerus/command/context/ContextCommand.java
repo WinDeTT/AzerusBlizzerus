@@ -10,6 +10,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.IllegalPluginAccessException;
 import org.jetbrains.annotations.NotNull;
+import org.windett.azerusBlizzerus.Main;
 import org.windett.azerusBlizzerus.context.ContextManager;
 import org.windett.azerusBlizzerus.context.WorldContext;
 
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class ContextCommand extends BukkitCommand {
+
+    private final ContextManager ctxManager = Main.tweakManager.getContextManager();;
 
     public ContextCommand(@NotNull String name, @NotNull String description, @NotNull String usageMessage, @NotNull List<String> aliases) {
         super(name, description, usageMessage, aliases);
@@ -46,7 +49,7 @@ public class ContextCommand extends BukkitCommand {
                     return true;
                 }
                 try {
-                    ContextManager.registerContext(args[1], false);
+                    ctxManager.registerContext(args[1], false);
                     player.sendMessage("Контекст " + args[1] + " был успешно зарегистрирован!");
                 } catch (Exception ex) {
                     player.sendMessage(ex.getMessage());
@@ -59,7 +62,7 @@ public class ContextCommand extends BukkitCommand {
                     return true;
                 }
                 try {
-                    ContextManager.moveToContext(player, args[1]);
+                    ctxManager.moveToContext(player, args[1]);
                     player.sendMessage("Вы были перемещены в контекст " + args[1]);
                 }
                 catch (Exception ex) {
@@ -67,16 +70,16 @@ public class ContextCommand extends BukkitCommand {
                 }
             }
             case "list" -> {
-                if (ContextManager.contextMap.isEmpty()) {
+                if (ctxManager.getContextMap().isEmpty()) {
                     player.sendMessage("Ни одного контекста не создано!");
                 }
                 player.sendMessage("Список доступных контекстов:");
-                for (String name : ContextManager.contextMap.keySet()) {
+                for (String name : ctxManager.getContextMap().keySet()) {
                     player.sendMessage("- " + name);
                 }
             }
             case "my" -> {
-                String contextName = ContextManager.getEntityContextName(player);
+                String contextName = ctxManager.getEntityContextName(player);
                 player.sendMessage("Ваш текущий контекст: " + contextName);
             }
             case "spawn" -> {
@@ -93,13 +96,13 @@ public class ContextCommand extends BukkitCommand {
                     player.sendMessage("Указан неверный тип сущности! Был создан ZOMBIE");
                 }
                 Entity entity = player.getWorld().spawnEntity(player.getLocation(), type);
-                String playerContextName = ContextManager.getEntityContextName(player);
-                ContextManager.moveToContext(entity, playerContextName);
-                entity.customName(Component.text("Контекст: " + ContextManager.getEntityContextName(entity)));
+                String playerContextName = ctxManager.getEntityContextName(player);
+                ctxManager.moveToContext(entity, playerContextName);
+                entity.customName(Component.text("Контекст: " + ctxManager.getEntityContextName(entity)));
                 entity.setCustomNameVisible(true);
             }
             case "update" -> {
-                ContextManager.refreshPlayerContextVisibility(player);
+                ctxManager.refreshPlayerContextVisibility(player);
                 player.sendMessage("Отображение вашего контекста обновлено!");
             }
             case "remove" -> {
@@ -108,12 +111,12 @@ public class ContextCommand extends BukkitCommand {
                     player.sendMessage(Component.text("/context remove <contextName>"));
                     return true;
                 }
-                if (!ContextManager.contextMap.containsKey(args[1])) {
+                if (!ctxManager.getContextMap().containsKey(args[1])) {
                     player.sendMessage(Component.text("Указанного контекста не существует!"));
                     return true;
                 }
                 try {
-                    ContextManager.removeContext(args[1]);
+                    ctxManager.removeContext(args[1]);
                     player.sendMessage(Component.text("Контекст " + args[1] + " был успешно удалён!"));
                 } catch (IllegalPluginAccessException ex) {
                     player.sendMessage(Component.text(ex.getMessage()));
@@ -132,10 +135,9 @@ public class ContextCommand extends BukkitCommand {
             return Arrays.asList("create", "enter", "list", "my", "spawn", "update", "remove");
         }
         else if (args.length == 2) {
-            final String firstArg = args[0].toLowerCase();
             switch(args[0]) {
                 case "enter" -> {
-                    return new ArrayList<>(ContextManager.contextMap.keySet());
+                    return new ArrayList<>(ctxManager.getContextMap().keySet());
                 }
                 case "spawn" -> {
                     List<String> entityTypes = new ArrayList<>();
@@ -146,8 +148,8 @@ public class ContextCommand extends BukkitCommand {
                 }
                 case "remove" -> {
                     List<String> contextNameList = new ArrayList<>();
-                    for (String contextName : ContextManager.contextMap.keySet()) {
-                        WorldContext context = ContextManager.contextMap.get(contextName);
+                    for (String contextName : ctxManager.getContextMap().keySet()) {
+                        WorldContext context = ctxManager.getContextMap().get(contextName);
                         if (context.isLockedToRemove()) continue;
                         contextNameList.add(contextName);
                     }

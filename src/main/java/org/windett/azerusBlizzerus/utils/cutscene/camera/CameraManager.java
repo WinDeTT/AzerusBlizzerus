@@ -12,13 +12,29 @@ import java.util.*;
 
 public class  CameraManager {
 
-    public static final List<Camera> workingCameras = new ArrayList<>();
-    public static final List<Mannequin> fakePlayerModels = new ArrayList<>();
+    public List<Camera> getWorkingCameras() {
+        return workingCameras;
+    }
 
-    public static final Map<Player, List<Location>> playerCameraCreation = new HashMap<>();
-    public static  final Map<Player, LivingEntity> playerCameraCreationTarget = new HashMap<>();
+    public List<Mannequin> getFakePlayerModels() {
+        return fakePlayerModels;
+    }
 
-    public static Camera findCameraByCameraEntity(Entity check) {
+    public Map<Player, List<Location>> getPlayerCameraCreation() {
+        return playerCameraCreation;
+    }
+
+    public Map<Player, LivingEntity> getPlayerCameraCreationTarget() {
+        return playerCameraCreationTarget;
+    }
+
+    private final List<Camera> workingCameras = new ArrayList<>();
+    private final List<Mannequin> fakePlayerModels = new ArrayList<>();
+
+    private final  Map<Player, List<Location>> playerCameraCreation = new HashMap<>();
+    private final Map<Player, LivingEntity> playerCameraCreationTarget = new HashMap<>();
+
+    public Camera findCameraByCameraEntity(Entity check) {
         if (check.getType() != EntityType.ITEM_DISPLAY) return null;
         for (Camera camera : workingCameras) {
             if (camera.getCameraEntity().equals(check)) {
@@ -28,7 +44,11 @@ public class  CameraManager {
         return null;
     }
 
-    public static List<Location> loadCameraPoints(World world, String fileName) throws FileNotFoundException {
+    public CameraManager() {
+
+    }
+
+    public List<Location> loadCameraPoints(World world, String fileName) throws FileNotFoundException {
         if (Main.cameraRecsFolder == null || !Main.cameraRecsFolder.exists()) {
             Bukkit.getLogger().info("cameraRecsFolder is not exists. CameraManager loadCameraPoints method");
             return null;

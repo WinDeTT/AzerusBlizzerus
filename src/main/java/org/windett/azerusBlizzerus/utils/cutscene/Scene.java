@@ -64,7 +64,7 @@ public class Scene {
             return;
         }
         final Location cameraLocation = cameraList.get(cameraId).getCameraEntity().getLocation();
-        List<Location> points = CameraManager.loadCameraPoints(cameraLocation.getWorld(), fileName);
+        List<Location> points = Main.tweakManager.getCameraManager().loadCameraPoints(cameraLocation.getWorld(), fileName);
         if (points == null) cameraPath.put(cameraId, List.of(cameraLocation, cameraLocation));
         else cameraPath.put(cameraId, points);
     }

@@ -19,9 +19,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class ScriptMoveManager {
-    public static final Map<UUID, ScriptedMovement> mobPaths = new HashMap<>();
+    public Map<UUID, ScriptedMovement> getMobPaths() {
+        return mobPaths;
+    }
 
-    public static ScriptedMovement getScriptedMovementFromEntity(Entity entity) {
+    private final Map<UUID, ScriptedMovement> mobPaths = new HashMap<>();
+
+    public ScriptMoveManager() {
+
+    }
+
+    public ScriptedMovement getScriptedMovementFromEntity(Entity entity) {
         if (!entity.isValid()) {
             if (mobPaths.containsKey(entity.getUniqueId())) mobPaths.remove(entity.getUniqueId());
         }
@@ -29,7 +37,7 @@ public class ScriptMoveManager {
         return mobPaths.get(entity.getUniqueId());
     }
 
-    public static void saveRecordingToFile(Player player, ScriptedMovement record, String fileName) {
+    public void saveRecordingToFile(Player player, ScriptedMovement record, String fileName) {
         if (Main.pathRecsFolder == null) {
             player.sendMessage(Component.text("Ошибка. Директории PathRecords не существует!"));
             return;
@@ -56,6 +64,8 @@ public class ScriptMoveManager {
         double vecY;
         double vecZ;
         String vecOffsetStr;
+        boolean wasClickedLeft;
+        boolean wasClickedRight;
         for (int index = 0; index < record.getPathList().size() ; index++) {
             offset = record.getPathList().get(index).getLocOffset();
             vecX = offset.getX();
@@ -64,7 +74,9 @@ public class ScriptMoveManager {
             vecOffsetStr = Math.round(vecX * 100.000000) / 100.000000 + "#" + Math.round(vecY * 100.000000) / 100.000000 + "#" + Math.round(vecZ * 100.000000) / 100.000000;
             yawRot = record.getPathList().get(index).getRotation().first().toString();
             pitchRot = record.getPathList().get(index).getRotation().second().toString();
-            sb.append("\n" + vecOffsetStr + " " + yawRot + " " + pitchRot);
+            wasClickedLeft = record.getPathList().get(index).getSwingHands().first();
+            wasClickedRight = record.getPathList().get(index).getSwingHands().second();
+            sb.append("\n" + vecOffsetStr + " " + yawRot + " " + pitchRot + " " + wasClickedLeft + " " + wasClickedRight);
         }
 
         File saveFile = new File(Main.pathRecsFolder, fileName);
@@ -76,7 +88,7 @@ public class ScriptMoveManager {
         }
     }
 
-    public static void loadPathFromFile(World world, ScriptedMovement movement, String fileName) throws FileNotFoundException {
+    public void loadPathFromFile(World world, ScriptedMovement movement, String fileName) throws FileNotFoundException {
         if (!fileName.endsWith(".yml")) {
             Bukkit.getLogger().info("Ошибка! Указан неверный формат файла!");
             return;
@@ -112,6 +124,9 @@ public class ScriptMoveManager {
         double vecZ;
         String offsetStr;
         Pair<Float, Float> rotation;
+        String wasClickedLeft;
+        String wasClickedRight;
+        Pair<Boolean, Boolean> handSwings;
         while (scanner.hasNextLine()) {
             line = scanner.nextLine();
             splitter = line.split(" ");
@@ -119,18 +134,28 @@ public class ScriptMoveManager {
             yaw = Float.parseFloat(splitter[1]);
             pitch = Float.parseFloat(splitter[2]);
             rotation = Pair.of(yaw, pitch);
+            boolean leftClick = false;
+            boolean rightClick = false;
+            if (splitter.length > 3) {
+                wasClickedLeft = splitter[3];
+                wasClickedRight = splitter[4];
+                leftClick = Boolean.parseBoolean(wasClickedLeft);
+                rightClick = Boolean.parseBoolean(wasClickedRight);
+
+            }
+            handSwings = Pair.of(leftClick, rightClick);
             splitter = offsetStr.split("#");
             vecX = Double.parseDouble(splitter[0]);
             vecY = Double.parseDouble(splitter[1]);
             vecZ = Double.parseDouble(splitter[2]);
             offset = new Vector(vecX, vecY, vecZ);
-            movement.getPathList().add(new PathPositionData(offset, rotation));
+            movement.getPathList().add(new PathTickData(offset, rotation, Pair.of(false, false)));
         }
         scanner.close();
         Bukkit.getLogger().info("Загрузка пути " + fileName + " прошла успешно!");
     }
 
-    public static Vector rotateVector(Vector vector, float yaw, float pitch) {
+    public Vector rotateVector(Vector vector, float yaw, float pitch) {
         double radYaw = Math.toRadians(yaw);
         double radPitch = Math.toRadians(pitch);
 

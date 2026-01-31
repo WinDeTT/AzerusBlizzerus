@@ -26,6 +26,8 @@ import java.util.*;
 
 public class CameraCommand extends BukkitCommand {
 
+    private final CameraManager cameraManager = Main.tweakManager.getCameraManager();
+
     public CameraCommand(@NotNull String name, @NotNull String description, @NotNull String usageMessage, @NotNull List<String> aliases) {
         super(name, description, usageMessage, aliases);
         setPermission("plugin.camera");
@@ -45,11 +47,11 @@ public class CameraCommand extends BukkitCommand {
             return true;
         }
         final Location playerEyeLocation = player.getEyeLocation().add(0, -0.5, 0);
-        List<Location> cameraFlightPoints = CameraManager.playerCameraCreation.get(player);
-        LivingEntity targetEntity = CameraManager.playerCameraCreationTarget.getOrDefault(player, null);
+        List<Location> cameraFlightPoints = cameraManager.getPlayerCameraCreation().get(player);
+        LivingEntity targetEntity = cameraManager.getPlayerCameraCreationTarget().getOrDefault(player, null);
         switch (args[0]) {
             case "create" -> {
-                CameraManager.playerCameraCreation.put(player, new ArrayList<>());
+                cameraManager.getPlayerCameraCreation().put(player, new ArrayList<>());
                 player.sendMessage(Component.text("Вы создали новую камеру."));
             }
             case "add" -> {
@@ -150,13 +152,13 @@ public class CameraCommand extends BukkitCommand {
                 Entity spectated = player.getSpectatorTarget();
                 if (spectated == null) return true;
                 if (spectated.getType() != EntityType.ITEM_DISPLAY) return true;
-                final Camera camera = CameraManager.findCameraByCameraEntity(spectated);
+                final Camera camera = cameraManager.findCameraByCameraEntity(spectated);
                 if (camera == null) return true;
                 camera.stopCamera();
                 camera.remove();
             }
             case "target" -> {
-                Map<Player, LivingEntity> cameraTarget = CameraManager.playerCameraCreationTarget;
+                Map<Player, LivingEntity> cameraTarget = cameraManager.getPlayerCameraCreationTarget();
                 if (args.length < 2) {
                     cameraTarget.put(player, null);
                     player.sendMessage(Component.text("Кликните по любой сущности, чтобы направить взгляд камеры на неё."));
@@ -228,7 +230,7 @@ public class CameraCommand extends BukkitCommand {
                 String name = args[1];
                 final List<Location> loadPoints;
                 try {
-                    loadPoints = CameraManager.loadCameraPoints(player.getWorld(), name);
+                    loadPoints = cameraManager.loadCameraPoints(player.getWorld(), name);
                 } catch (FileNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -236,7 +238,7 @@ public class CameraCommand extends BukkitCommand {
                     player.sendMessage(Component.text("Ошибка при загрузке файла. Причина ошибки в консоли."));
                     return true;
                 }
-                CameraManager.playerCameraCreation.put(player, loadPoints);
+                cameraManager.getPlayerCameraCreation().put(player, loadPoints);
                 player.sendMessage(Component.text("Камера " + name + " успешно загружена!"));
             }
             case "list" -> {
@@ -266,7 +268,7 @@ public class CameraCommand extends BukkitCommand {
         if (!(sender instanceof Player player)) {
             return List.of();
         }
-        List<Location> cameraFlyPoints = CameraManager.playerCameraCreation.getOrDefault(player, null);
+        List<Location> cameraFlyPoints = cameraManager.getPlayerCameraCreation().getOrDefault(player, null);
         if (args.length == 1) {
             if (cameraFlyPoints == null) {
                 return Arrays.asList("create", "list", "load");
