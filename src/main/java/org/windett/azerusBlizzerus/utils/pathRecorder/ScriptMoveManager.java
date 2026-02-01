@@ -31,7 +31,7 @@ public class ScriptMoveManager {
 
     public ScriptedMovement getScriptedMovementFromEntity(Entity entity) {
         if (!entity.isValid()) {
-            if (mobPaths.containsKey(entity.getUniqueId())) mobPaths.remove(entity.getUniqueId());
+            mobPaths.remove(entity.getUniqueId());
         }
         if (!mobPaths.containsKey(entity.getUniqueId())) return null;
         return mobPaths.get(entity.getUniqueId());

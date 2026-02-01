@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.windett.azerusBlizzerus.command.camera.CameraCommand;
 import org.windett.azerusBlizzerus.command.context.ContextCommand;
 import org.windett.azerusBlizzerus.command.pathRecorder.PathRecorderCommand;
+import org.windett.azerusBlizzerus.command.rpg.item.RecipeOpenCommand;
 import org.windett.azerusBlizzerus.context.ContextListener;
 import org.windett.azerusBlizzerus.events.player.PlayerJoinQuitListener;
 import org.windett.azerusBlizzerus.utils.pathRecorder.ScriptMoveListener;
@@ -27,6 +28,9 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+
+        Bukkit.clearRecipes();
+
         try {
             final ServerFile serverFile = new ServerFile();
             cameraRecsFolder = serverFile.getCameraRecsFolder();
@@ -38,6 +42,7 @@ public final class Main extends JavaPlugin {
         final PluginManager pm = Bukkit.getPluginManager();
         tweakManager = new TweakManager();
         tweakManager.getContextManager().registerGlobalContext();
+        tweakManager.getRpgItemManager().registerRecipes();
 
         final PlayerJoinQuitListener playerJoinQuitListener = new PlayerJoinQuitListener();
         final ScriptMoveListener scriptMoveListener = new ScriptMoveListener();
@@ -49,9 +54,11 @@ public final class Main extends JavaPlugin {
         pm.registerEvents(ctxListen, this);
 
         CommandMap commandMap = Bukkit.getCommandMap();
+        RecipeOpenCommand recipeOpenCommand = new RecipeOpenCommand("openrecipe", "Recipe management", "/openrecipe", List.of("oprec"));
         ContextCommand ctxCommand = new ContextCommand("context", "Context management", "/context", Arrays.asList("ctx", "ct"));
         CameraCommand camCommand = new CameraCommand("camera", "Camera creation", "/camera", List.of("cam"));
         PathRecorderCommand pathRecCommand = new PathRecorderCommand("pathRecorder", "Path Recorder management", "/pathrec", List.of("pr"));
+        commandMap.register("azerusblizzerus", recipeOpenCommand);
         commandMap.register("azerusblizzerus", ctxCommand);
         commandMap.register("azerusblizzerus", camCommand);
         commandMap.register("azerusblizzerus", pathRecCommand);
