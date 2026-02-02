@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.windett.azerusBlizzerus.content.ContentRpgEntity;
+import org.windett.azerusBlizzerus.content.ContentRpgSpawner;
 import org.windett.azerusBlizzerus.stats.DamageStats;
 import org.windett.azerusBlizzerus.stats.DefenceStats;
 
@@ -14,10 +15,12 @@ public class RpgMob implements RpgEntity, RpgDamageable{
 
     private final UUID uuid;
     private final ContentRpgEntity contentRpgEntity;
+    private ContentRpgSpawner spawner;
 
-    public RpgMob(UUID uuid, ContentRpgEntity contentRpgEntity) {
+    public RpgMob(UUID uuid, ContentRpgEntity contentRpgEntity, ContentRpgSpawner spawner) {
         this.uuid = uuid;
         this.contentRpgEntity = contentRpgEntity;
+        this.spawner = spawner;
     }
 
     @Override

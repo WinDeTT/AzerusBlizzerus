@@ -28,6 +28,7 @@ public class ContentRpgEntity {
     private final ItemStack leggings;
     private final ItemStack boots;
 
+
     public enum Specific {
         SIMPLE("&7", "Обычный"),
         ELITE("&c", "Элитный"),
@@ -61,6 +62,7 @@ public class ContentRpgEntity {
         this.chestPlate = builder.chestPlate;
         this.leggings = builder.leggings;
         this.boots = builder.boots;
+
 
         Main.rpgSystemManager.getRpgEntityManager().registerContentMob(this.id, this);
     }

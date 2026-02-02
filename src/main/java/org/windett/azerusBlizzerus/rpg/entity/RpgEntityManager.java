@@ -2,9 +2,11 @@ package org.windett.azerusBlizzerus.rpg.entity;
 
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.windett.azerusBlizzerus.Main;
 import org.windett.azerusBlizzerus.content.ContentRpgEntity;
+import org.windett.azerusBlizzerus.content.ContentRpgSpawner;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,9 +20,13 @@ public class RpgEntityManager {
     public Map<UUID, RpgEntity> getRpgEntityContainerMap() {
         return rpgEntityContainerMap;
     }
+    public Map<UUID, ContentRpgSpawner> getRpgMobSpawnerMap() {
+        return rpgMobSpawnerMap;
+    }
 
     private final Map<Integer, ContentRpgEntity> contentMobMap = new HashMap<>();
     private final Map<UUID, RpgEntity> rpgEntityContainerMap = new HashMap<>();
+    private final Map<UUID, ContentRpgSpawner> rpgMobSpawnerMap = new HashMap<>();
 
     public void registerContentMob(int id, ContentRpgEntity contentMob) {
         contentMobMap.put(id, contentMob);
@@ -30,7 +36,7 @@ public class RpgEntityManager {
         rpgEntityContainerMap.put(entityID, rpgEntity);
     }
 
-    public void spawnRpgEntity(String context, int id, Location location) {
+    public Entity spawnRpgEntity(String context, int id, Location location, ContentRpgSpawner spawner) {
         ContentRpgEntity cte = contentMobMap.get(id);
         if (cte == null) {
             throw new IllegalArgumentException("This ID not exists.");
@@ -49,7 +55,13 @@ public class RpgEntityManager {
         contentMob.getEquipment().setLeggings(cte.getLeggings(), false);
         contentMob.getEquipment().setBoots(cte.getBoots(), false);
         contentMob.setCanPickupItems(false);
+        contentMob.setPersistent(false);
         contentMob.setRemoveWhenFarAway(true);
-        registerRpgEntity(contentMob.getUniqueId(), new RpgMob(contentMob.getUniqueId(), cte));
+        registerRpgEntity(contentMob.getUniqueId(), new RpgMob(contentMob.getUniqueId(), cte, spawner));
+        return contentMob;
+    }
+
+    public RpgEntity asRpgMob(Entity entity) {
+        return rpgEntityContainerMap.get(entity.getUniqueId());
     }
 }

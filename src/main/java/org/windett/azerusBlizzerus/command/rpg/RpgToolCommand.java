@@ -43,7 +43,7 @@ public class RpgToolCommand extends BukkitCommand {
                     int id = Integer.parseInt(args[1]);
                     WorldContext playerCtx = Main.tweakManager.getContextManager().getEntityContext(player);
 
-                    Main.rpgSystemManager.getRpgEntityManager().spawnRpgEntity(playerCtx.getContextName(), id, player.getLocation());
+                    Main.rpgSystemManager.getRpgEntityManager().spawnRpgEntity(playerCtx.getContextName(), id, player.getLocation(), null);
                 } catch (NumberFormatException ex) {
                     player.sendMessage("Необходимо указать число!");
                     return true;

@@ -3,7 +3,6 @@ package org.windett.azerusBlizzerus.rpg.entity;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 
 import java.util.UUID;
 

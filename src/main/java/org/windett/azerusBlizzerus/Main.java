@@ -5,12 +5,14 @@ import org.bukkit.World;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.windett.azerusBlizzerus.command.camera.CameraCommand;
 import org.windett.azerusBlizzerus.command.context.ContextCommand;
 import org.windett.azerusBlizzerus.command.pathRecorder.PathRecorderCommand;
 import org.windett.azerusBlizzerus.command.rpg.RpgToolCommand;
 import org.windett.azerusBlizzerus.command.rpg.item.RecipeOpenCommand;
 import org.windett.azerusBlizzerus.content.contentBase.RpgMobBase;
+import org.windett.azerusBlizzerus.content.contentBase.RpgSpawnerBase;
 import org.windett.azerusBlizzerus.context.ContextListener;
 import org.windett.azerusBlizzerus.events.player.PlayerJoinQuitListener;
 import org.windett.azerusBlizzerus.rpg.RpgSystemManager;
@@ -28,6 +30,7 @@ public final class Main extends JavaPlugin {
     public static File pathRecsFolder;
     public static TweakManager tweakManager;
     public static RpgSystemManager rpgSystemManager;
+    public RpgMobBase rpgMobBase;
 
     @Override
     public void onEnable() {
@@ -48,7 +51,7 @@ public final class Main extends JavaPlugin {
         tweakManager.getContextManager().registerGlobalContext();
         rpgSystemManager = new RpgSystemManager();
         rpgSystemManager.getRpgItemManager().registerRecipes();
-        RpgMobBase mobBase = new RpgMobBase();
+        RpgMobBase rpgMobBase = new RpgMobBase();
 
         final PlayerJoinQuitListener playerJoinQuitListener = new PlayerJoinQuitListener();
         final ScriptMoveListener scriptMoveListener = new ScriptMoveListener();
@@ -70,6 +73,15 @@ public final class Main extends JavaPlugin {
         commandMap.register("azerusblizzerus", camCommand);
         commandMap.register("azerusblizzerus", pathRecCommand);
         commandMap.register("azerusblizzerus", rpgToolCommand);
+
+        new BukkitRunnable() {
+            public void run() {
+                if (Bukkit.getWorld("world") != null) {
+                    cancel();
+                    RpgSpawnerBase rpgSpawnerBase = new RpgSpawnerBase();
+                }
+            }
+        }.runTaskTimer(Main.instance, 40L, 40L);
     }
 
     @Override
