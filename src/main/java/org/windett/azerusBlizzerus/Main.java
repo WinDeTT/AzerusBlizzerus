@@ -8,9 +8,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.windett.azerusBlizzerus.command.camera.CameraCommand;
 import org.windett.azerusBlizzerus.command.context.ContextCommand;
 import org.windett.azerusBlizzerus.command.pathRecorder.PathRecorderCommand;
+import org.windett.azerusBlizzerus.command.rpg.RpgToolCommand;
 import org.windett.azerusBlizzerus.command.rpg.item.RecipeOpenCommand;
+import org.windett.azerusBlizzerus.content.contentBase.RpgMobBase;
 import org.windett.azerusBlizzerus.context.ContextListener;
 import org.windett.azerusBlizzerus.events.player.PlayerJoinQuitListener;
+import org.windett.azerusBlizzerus.rpg.RpgSystemManager;
 import org.windett.azerusBlizzerus.utils.pathRecorder.ScriptMoveListener;
 
 import java.io.File;
@@ -24,6 +27,7 @@ public final class Main extends JavaPlugin {
     public static File cameraRecsFolder;
     public static File pathRecsFolder;
     public static TweakManager tweakManager;
+    public static RpgSystemManager rpgSystemManager;
 
     @Override
     public void onEnable() {
@@ -42,7 +46,9 @@ public final class Main extends JavaPlugin {
         final PluginManager pm = Bukkit.getPluginManager();
         tweakManager = new TweakManager();
         tweakManager.getContextManager().registerGlobalContext();
-        tweakManager.getRpgItemManager().registerRecipes();
+        rpgSystemManager = new RpgSystemManager();
+        rpgSystemManager.getRpgItemManager().registerRecipes();
+        RpgMobBase mobBase = new RpgMobBase();
 
         final PlayerJoinQuitListener playerJoinQuitListener = new PlayerJoinQuitListener();
         final ScriptMoveListener scriptMoveListener = new ScriptMoveListener();
@@ -58,10 +64,12 @@ public final class Main extends JavaPlugin {
         ContextCommand ctxCommand = new ContextCommand("context", "Context management", "/context", Arrays.asList("ctx", "ct"));
         CameraCommand camCommand = new CameraCommand("camera", "Camera creation", "/camera", List.of("cam"));
         PathRecorderCommand pathRecCommand = new PathRecorderCommand("pathRecorder", "Path Recorder management", "/pathrec", List.of("pr"));
+        RpgToolCommand rpgToolCommand = new RpgToolCommand("rpgTool", "Rpg management", "/rpg", List.of("rpg"));
         commandMap.register("azerusblizzerus", recipeOpenCommand);
         commandMap.register("azerusblizzerus", ctxCommand);
         commandMap.register("azerusblizzerus", camCommand);
         commandMap.register("azerusblizzerus", pathRecCommand);
+        commandMap.register("azerusblizzerus", rpgToolCommand);
     }
 
     @Override

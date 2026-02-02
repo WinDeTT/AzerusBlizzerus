@@ -7,7 +7,7 @@ import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.windett.azerusBlizzerus.Main;
-import org.windett.azerusBlizzerus.TweakManager;
+import org.windett.azerusBlizzerus.rpg.RpgSystemManager;
 
 import java.util.List;
 
@@ -28,14 +28,14 @@ public class RecipeOpenCommand extends BukkitCommand {
             player.sendMessage(Component.text("Использование: /recipe <id>"));
             return true;
         }
-        final TweakManager manager = Main.tweakManager;
+        final RpgSystemManager manager = Main.rpgSystemManager;
         try {
             int recipeId = Integer.parseInt(args[0]);
             if (!manager.getRpgItemManager().getItemRecipeMap().containsKey(recipeId)) {
                 player.sendMessage(Component.text("Рецепта под указанным ID не существует!"));
                 return true;
             }
-            Main.tweakManager.getRpgItemManager().openRecipe(player, recipeId);
+            Main.rpgSystemManager.getRpgItemManager().openRecipe(player, recipeId);
         }
         catch (NumberFormatException ex) {
             player.sendMessage(Component.text("Указан неверный ID рецепта."));

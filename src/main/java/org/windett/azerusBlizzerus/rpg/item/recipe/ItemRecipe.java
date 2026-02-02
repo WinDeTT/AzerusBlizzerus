@@ -67,7 +67,7 @@ public class ItemRecipe {
             ingredientNumber++;
         }
 
-        Main.tweakManager.getRpgItemManager().getItemRecipeMap().put(recipeId, this);
+        Main.rpgSystemManager.getRpgItemManager().getItemRecipeMap().put(recipeId, this);
     }
 
     public static class Builder {
