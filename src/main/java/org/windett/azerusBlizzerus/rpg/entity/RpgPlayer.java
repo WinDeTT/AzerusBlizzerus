@@ -52,12 +52,12 @@ public class RpgPlayer implements RpgEntity, RpgDamageable {
     }
 
     @Override
-    public void onDamage() {
+    public void handleDamage() {
 
     }
 
     @Override
-    public void onDeath() {
+    public void handleDeath() {
 
     }
 

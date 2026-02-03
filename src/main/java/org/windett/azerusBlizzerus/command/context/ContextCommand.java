@@ -116,7 +116,7 @@ public class ContextCommand extends BukkitCommand {
                     return true;
                 }
                 try {
-                    ctxManager.removeContext(args[1]);
+                    ctxManager.unregisterContext(args[1]);
                     player.sendMessage(Component.text("Контекст " + args[1] + " был успешно удалён!"));
                 } catch (IllegalPluginAccessException ex) {
                     player.sendMessage(Component.text(ex.getMessage()));

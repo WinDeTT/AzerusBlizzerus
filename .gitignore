@@ -162,3 +162,4 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/java,intellij+all,maven,windows
 /src/main/java/org/windett/azerusBlizzerus/context/
+/src/main/java/org/windett/azerusBlizzerus/events/custom/context/

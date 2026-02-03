@@ -21,6 +21,7 @@ public class ContentRpgEntity {
     private final DamageStats damageStats;
     private final DefenceStats defenceStats;
     private final float movementSpeed;
+    private final boolean baby;
     private final ItemStack hand;
     private final ItemStack offHand;
     private final ItemStack helmet;
@@ -55,6 +56,7 @@ public class ContentRpgEntity {
         this.damageStats = builder.damageStats;
         this.defenceStats = builder.defenceStats;
         this.movementSpeed = builder.movementSpeed;
+        this.baby = builder.baby;
 
         this.hand = builder.hand;
         this.offHand = builder.offHand;
@@ -78,6 +80,7 @@ public class ContentRpgEntity {
         private DamageStats damageStats = new DamageStats();
         private DefenceStats defenceStats = new DefenceStats();
         private float movementSpeed = 0.25F;
+        private boolean baby = false;
 
         private ItemStack hand = null;
         private ItemStack offHand = null;
@@ -140,6 +143,10 @@ public class ContentRpgEntity {
         }
         public Builder speed(float speed) {
             this.movementSpeed = speed;
+            return this;
+        }
+        public Builder baby(boolean baby) {
+            this.baby = baby;
             return this;
         }
 
@@ -230,6 +237,10 @@ public class ContentRpgEntity {
 
     public float getMovementSpeed() {
         return movementSpeed;
+    }
+
+    public boolean isBaby() {
+        return baby;
     }
 
     public ItemStack getHand() {

@@ -30,11 +30,17 @@ public final class Main extends JavaPlugin {
     public static File pathRecsFolder;
     public static TweakManager tweakManager;
     public static RpgSystemManager rpgSystemManager;
-    public RpgMobBase rpgMobBase;
+
+    public boolean isServerIsReady() {
+        return serverIsReady;
+    }
+
+    public boolean serverIsReady = false;
 
     @Override
     public void onEnable() {
         instance = this;
+
 
         Bukkit.clearRecipes();
 
@@ -48,10 +54,10 @@ public final class Main extends JavaPlugin {
 
         final PluginManager pm = Bukkit.getPluginManager();
         tweakManager = new TweakManager();
-        tweakManager.getContextManager().registerGlobalContext();
         rpgSystemManager = new RpgSystemManager();
         rpgSystemManager.getRpgItemManager().registerRecipes();
         RpgMobBase rpgMobBase = new RpgMobBase();
+        rpgMobBase.init();
 
         final PlayerJoinQuitListener playerJoinQuitListener = new PlayerJoinQuitListener();
         final ScriptMoveListener scriptMoveListener = new ScriptMoveListener();
@@ -79,6 +85,8 @@ public final class Main extends JavaPlugin {
                 if (Bukkit.getWorld("world") != null) {
                     cancel();
                     RpgSpawnerBase rpgSpawnerBase = new RpgSpawnerBase();
+                    tweakManager.getContextManager().registerGlobalContext();
+                    serverIsReady = true;
                 }
             }
         }.runTaskTimer(Main.instance, 40L, 40L);

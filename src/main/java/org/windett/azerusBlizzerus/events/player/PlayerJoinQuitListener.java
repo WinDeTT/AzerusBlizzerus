@@ -28,6 +28,13 @@ public class PlayerJoinQuitListener implements Listener {
     final Location worldFirstSpawnLocation = new Location(Bukkit.getWorld("world"), -881.932, 66.0, -1575.988, -89.8F, -0.5F);
     public static final Map<UUID, PlayerData> PLAYERS = new HashMap<>();
 
+    @EventHandler
+    public void asyncPreJoin(AsyncPlayerPreLoginEvent event) {
+        if (!Main.instance.isServerIsReady()) {
+            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Please, wait few seconds..");
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void join(PlayerJoinEvent e) {
         final Player player = e.getPlayer();

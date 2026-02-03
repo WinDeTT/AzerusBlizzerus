@@ -7,6 +7,9 @@ import org.windett.azerusBlizzerus.content.ContentRpgEntity;
 public class RpgMobBase {
 
     public RpgMobBase() {
+    }
+
+    public void init() {
         ContentRpgEntity cte = new ContentRpgEntity.Builder()
                 .id(1)
                 .name("Тестовый моб")
@@ -20,6 +23,7 @@ public class RpgMobBase {
                 .offHand(Material.BOW)
                 .helmet(Material.LEATHER_HELMET)
                 .speed(0.35F)
+                .baby(false)
                 .build();
     }
 }

@@ -1,12 +1,15 @@
 package org.windett.azerusBlizzerus.rpg.entity;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.windett.azerusBlizzerus.Main;
 import org.windett.azerusBlizzerus.content.ContentRpgEntity;
 import org.windett.azerusBlizzerus.content.ContentRpgSpawner;
+import org.windett.azerusBlizzerus.events.custom.rpg.entity.mob.RpgMobSpawnEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,24 +44,34 @@ public class RpgEntityManager {
         if (cte == null) {
             throw new IllegalArgumentException("This ID not exists.");
         }
-        LivingEntity contentMob = (LivingEntity) location.getWorld().spawnEntity(location, cte.getType());
-        Main.tweakManager.getContextManager().moveToContext(contentMob, context);
-        contentMob.setCustomName(cte.getName());
-        contentMob.setCustomNameVisible(true);
-        contentMob.setMaxHealth(cte.getMaxHealth());
-        contentMob.setHealth(cte.getMaxHealth());
-        contentMob.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(cte.getMovementSpeed());
-        contentMob.getEquipment().setItemInMainHand(cte.getHand(), false);
-        contentMob.getEquipment().setItemInOffHand(cte.getOffHand(), false);
-        contentMob.getEquipment().setHelmet(cte.getHelmet(), false);
-        contentMob.getEquipment().setChestplate(cte.getChestPlate(), false);
-        contentMob.getEquipment().setLeggings(cte.getLeggings(), false);
-        contentMob.getEquipment().setBoots(cte.getBoots(), false);
-        contentMob.setCanPickupItems(false);
-        contentMob.setPersistent(false);
-        contentMob.setRemoveWhenFarAway(true);
-        registerRpgEntity(contentMob.getUniqueId(), new RpgMob(contentMob.getUniqueId(), cte, spawner));
-        return contentMob;
+        LivingEntity mob = (LivingEntity) location.getWorld().spawnEntity(location, cte.getType());
+        Main.tweakManager.getContextManager().moveToContext(mob, context);
+        mob.setCustomName(cte.getName());
+        mob.setCustomNameVisible(true);
+        mob.setMaxHealth(cte.getMaxHealth());
+        mob.setHealth(cte.getMaxHealth());
+        mob.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(cte.getMovementSpeed());
+        mob.getEquipment().setItemInMainHand(cte.getHand(), false);
+        mob.getEquipment().setItemInOffHand(cte.getOffHand(), false);
+        mob.getEquipment().setHelmet(cte.getHelmet(), false);
+        mob.getEquipment().setChestplate(cte.getChestPlate(), false);
+        mob.getEquipment().setLeggings(cte.getLeggings(), false);
+        mob.getEquipment().setBoots(cte.getBoots(), false);
+        mob.setCanPickupItems(false);
+        mob.setPersistent(false);
+        if (mob instanceof Ageable) {
+            boolean isBaby = cte.isBaby();
+            if (isBaby) {
+                ((Ageable) mob).setBaby();
+            }
+            else {
+                ((Ageable) mob).setAdult();
+            }
+        }
+        final RpgMob rpgMob = new RpgMob(mob.getUniqueId(), cte, spawner);
+        registerRpgEntity(mob.getUniqueId(), rpgMob);
+        Bukkit.getPluginManager().callEvent(new RpgMobSpawnEvent(rpgMob));
+        return mob;
     }
 
     public RpgEntity asRpgMob(Entity entity) {

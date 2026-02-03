@@ -6,6 +6,7 @@ import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.windett.azerusBlizzerus.content.ContentRpgEntity;
 import org.windett.azerusBlizzerus.content.ContentRpgSpawner;
+import org.windett.azerusBlizzerus.events.custom.rpg.RpgEntityDeathEvent;
 import org.windett.azerusBlizzerus.stats.DamageStats;
 import org.windett.azerusBlizzerus.stats.DefenceStats;
 
@@ -54,13 +55,17 @@ public class RpgMob implements RpgEntity, RpgDamageable{
     }
 
     @Override
-    public void onDamage() {
+    public void handleDamage() {
 
     }
 
     @Override
-    public void onDeath() {
-
+    public void handleDeath() {
+        RpgDamageable rpgEntityLiving = this;
+        Bukkit.getPluginManager().callEvent(new RpgEntityDeathEvent(this));
+        if (spawner != null) {
+            spawner.setKilled();
+        }
     }
 
     @Override
@@ -91,5 +96,9 @@ public class RpgMob implements RpgEntity, RpgDamageable{
     @Override
     public boolean isValid() {
         return asBukkitEntity().isValid();
+    }
+
+    public ContentRpgSpawner getSpawner() {
+        return spawner;
     }
 }

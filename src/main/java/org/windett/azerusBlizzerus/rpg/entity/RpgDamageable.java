@@ -13,7 +13,7 @@ public interface RpgDamageable {
     DamageStats getDamageStats();
     DefenceStats getDefenceStats();
 
-    void onDamage();
-    void onDeath();
+    void handleDamage();
+    void handleDeath();
 
 }

@@ -1,17 +1,23 @@
 package org.windett.azerusBlizzerus.content;
 
-import io.papermc.paper.entity.TeleportFlag;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.entity.Creature;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.windett.azerusBlizzerus.Main;
+import org.windett.azerusBlizzerus.context.ContextManager;
+import org.windett.azerusBlizzerus.context.WorldContext;
 import org.windett.azerusBlizzerus.rpg.entity.RpgMob;
+import org.windett.azerusBlizzerus.rpg.entity.RpgPlayer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class ContentRpgSpawner {
@@ -25,6 +31,7 @@ public class ContentRpgSpawner {
     private final float yaw;
     private final float pitch;
     private final int spawnCooldown;
+    private int spawnTimer;
     private final double leashRange;
     private final ContentRpgEntity contentMob;
     private LivingEntity entityMob;
@@ -44,62 +51,23 @@ public class ContentRpgSpawner {
         this.leashRange = builder.leashRange;
         this.contentMob = builder.contentMob;
         this.killed = true;
-        Bukkit.broadcastMessage("0");
+        this.spawnTimer = 0;
         final World world = Bukkit.getWorld(this.world);
         if (world == null) {
             return;
         }
-        Bukkit.broadcastMessage("1");
-        if (!Main.tweakManager.getContextManager().getContextMap().containsKey(context)) {
-            return;
-        }
-        Bukkit.broadcastMessage("2");
         if (contentMob == null) {
             return;
         }
-        Bukkit.broadcastMessage("3");
         Main.rpgSystemManager.getRpgEntityManager().getRpgMobSpawnerMap().put(this.spawnerID, this);
-
-        final Location spawnLocation = new Location(world, x, y, z, yaw, pitch);
-        this.spawnerRunnable = new BukkitRunnable() {
-            int cooldown = 0;
-
-            public void run() {
-                if (entityMob != null && entityMob.isValid()) {
-                    if (entityMob.getLocation().distanceSquared(spawnLocation) >= leashRange * leashRange) {
-                        CraftEntity ce = (CraftEntity) entityMob;
-                        ce.getHandle().setPos(x,y,z);
-                        if (entityMob instanceof Creature) {
-                            ((Creature) entityMob).setTarget(null);
-                            RpgMob rm = (RpgMob) Main.rpgSystemManager.getRpgEntityManager().asRpgMob(entityMob);
-                            // далее...
-                        }
-                    }
-                    return;
-                }
-                if (killed) {
-                    if (cooldown < 1) {
-                        int X = spawnLocation.getBlockX() >> 4;
-                        int Z = spawnLocation.getBlockZ() >> 4;
-                        if (world.isChunkLoaded(X, Z)) {
-                            entityMob = (LivingEntity) Main.rpgSystemManager.getRpgEntityManager().spawnRpgEntity(context, contentMob.getId(), spawnLocation, ContentRpgSpawner.this);
-                            killed = false;
-                            cooldown = spawnCooldown;
-                        }
-                    } else {
-                        cooldown--;
-                    }
-                } else {
-                    killed = true;
-                    cooldown = 0;
-                }
-            }
-        }.runTaskTimer(Main.instance, 20L, 20L);
+        if (Main.tweakManager.getContextManager().isContextRunning(context)) {
+            startSpawnPointWork();
+        }
     }
 
     public static class Builder {
         private String world = "world";
-        private String context = Main.tweakManager.getContextManager().getGlobalContext().getContextName();
+        private String context = ContextManager.GLOBAL_CONTEXT;
         private double x = 0.0;
         private double y = 0.0;
         private double z = 0.0;
@@ -193,11 +161,100 @@ public class ContentRpgSpawner {
         return entityMob;
     }
 
+    public void setKilled() {
+        killed = true;
+        spawnTimer = spawnCooldown;
+    }
+
     public boolean isKilled() {
         return killed;
     }
 
     public BukkitTask getSpawnerRunnable() {
         return spawnerRunnable;
+    }
+
+    private boolean handleRespawn(Location spawnLocation) {
+        World world = getWorld();
+        int X = spawnLocation.getBlockX() >> 4;
+        int Z = spawnLocation.getBlockZ() >> 4;
+        if (world.isChunkLoaded(X, Z)) {
+            if (!hasNearbyPlayers(spawnLocation)) return false;
+            entityMob = (LivingEntity) Main.rpgSystemManager.getRpgEntityManager().spawnRpgEntity(context, contentMob.getId(), spawnLocation, ContentRpgSpawner.this);
+            killed = false;
+            return true;
+        } else return false;
+    }
+
+
+    private void handleTeleportLeashBackIf(boolean wentFar) {
+        if (!wentFar) return;
+        CraftEntity ce = (CraftEntity) entityMob;
+        ce.getHandle().setPos(x, y, z);
+        if (!(entityMob instanceof Creature)) return;
+        ((Creature) entityMob).setTarget(null);
+        RpgMob rm = (RpgMob) Main.rpgSystemManager.getRpgEntityManager().asRpgMob(entityMob);
+        // далее...
+    }
+
+    private void handleDespawnIfHasNotNearbyPlayers(boolean hasNearbyPlayers) {
+        if (hasNearbyPlayers) return;
+        entityMob.remove();
+    }
+
+    private boolean hasNearbyPlayers(Location location) {
+        List<Player> nearbyPlayers = new ArrayList<>();
+        for (Player player : location.getNearbyPlayers(50,50,50)) {
+            /*
+            RpgPlayer rpgPlayer = (RpgPlayer) Main.rpgSystemManager.getRpgEntityManager().asRpgMob(player);
+            if (rpgPlayer == null) continue;
+
+             */
+            WorldContext playerCtx = Main.tweakManager.getContextManager().getEntityContext(player);
+            if (playerCtx.getContextName().equals(context)) nearbyPlayers.add(player);
+        }
+        return !nearbyPlayers.isEmpty();
+    }
+
+    public void startSpawnPointWork() {
+        if (spawnerRunnable != null && !spawnerRunnable.isCancelled()) return;
+        final World world = getWorld();
+        final Location spawnLocation = new Location(world, x, y, z, yaw, pitch);
+        this.spawnerRunnable = new BukkitRunnable() {
+
+            public void run() {
+                if (entityMob != null && entityMob.isValid()) {
+                    handleDespawnIfHasNotNearbyPlayers(hasNearbyPlayers(entityMob.getLocation()));
+                    handleTeleportLeashBackIf(entityMob.getLocation().distanceSquared(spawnLocation) >= leashRange * leashRange);
+                    return;
+                }
+                if (killed) {
+                    if (spawnTimer < 1) {
+                        if (handleRespawn(spawnLocation)) {
+                            spawnTimer = spawnCooldown;
+                        }
+                    } else {
+                        spawnTimer--;
+                    }
+                } else {
+                    killed = true;
+                    spawnTimer = 0;
+                }
+            }
+        }.runTaskTimer(Main.instance, 20L, 20L);
+    }
+
+    public void stopSpawnPointWork() {
+        if (spawnerRunnable != null) {
+            if (!spawnerRunnable.isCancelled()) spawnerRunnable.cancel();
+        }
+        spawnerRunnable = null;
+        if (entityMob != null) {
+            if (entityMob.isValid()) {
+                entityMob.remove();
+            }
+        }
+        entityMob = null;
+        killed = true;
     }
 }
