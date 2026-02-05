@@ -46,7 +46,7 @@ public class CameraCommand extends BukkitCommand {
             }
             return true;
         }
-        final Location playerEyeLocation = player.getEyeLocation().add(0, -0.5, 0);
+        final Location playerEyeLocation = player.getEyeLocation();
         List<Location> cameraFlightPoints = cameraManager.getPlayerCameraCreation().get(player);
         LivingEntity targetEntity = cameraManager.getPlayerCameraCreationTarget().getOrDefault(player, null);
         switch (args[0]) {

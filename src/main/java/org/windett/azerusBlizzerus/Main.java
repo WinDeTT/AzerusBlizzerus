@@ -14,7 +14,8 @@ import org.windett.azerusBlizzerus.command.rpg.item.RecipeOpenCommand;
 import org.windett.azerusBlizzerus.content.contentBase.RpgMobBase;
 import org.windett.azerusBlizzerus.content.contentBase.RpgSpawnerBase;
 import org.windett.azerusBlizzerus.context.ContextListener;
-import org.windett.azerusBlizzerus.events.player.PlayerJoinQuitListener;
+import org.windett.azerusBlizzerus.events.listeners.entity.EntityGlobalAttackListener;
+import org.windett.azerusBlizzerus.events.listeners.entity.player.PlayerListenerJoinQuit;
 import org.windett.azerusBlizzerus.rpg.RpgSystemManager;
 import org.windett.azerusBlizzerus.utils.pathRecorder.ScriptMoveListener;
 
@@ -59,14 +60,16 @@ public final class Main extends JavaPlugin {
         RpgMobBase rpgMobBase = new RpgMobBase();
         rpgMobBase.init();
 
-        final PlayerJoinQuitListener playerJoinQuitListener = new PlayerJoinQuitListener();
+        final PlayerListenerJoinQuit playerListenerJoinQuit = new PlayerListenerJoinQuit();
         final ScriptMoveListener scriptMoveListener = new ScriptMoveListener();
         final ContextListener ctxListen = new ContextListener();
+        final EntityGlobalAttackListener entityGlobalAttackListener = new EntityGlobalAttackListener();
 
 
-        pm.registerEvents(playerJoinQuitListener, this);
+        pm.registerEvents(playerListenerJoinQuit, this);
         pm.registerEvents(scriptMoveListener, this);
         pm.registerEvents(ctxListen, this);
+        pm.registerEvents(entityGlobalAttackListener, this);
 
         CommandMap commandMap = Bukkit.getCommandMap();
         RecipeOpenCommand recipeOpenCommand = new RecipeOpenCommand("openrecipe", "Recipe management", "/openrecipe", List.of("oprec"));

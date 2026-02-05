@@ -7,6 +7,7 @@ import org.windett.azerusBlizzerus.events.listeners.rpg.entity.RpgEntityDeathLis
 import org.windett.azerusBlizzerus.events.listeners.rpg.entity.mob.RpgMobListener;
 import org.windett.azerusBlizzerus.rpg.entity.RpgEntityManager;
 import org.windett.azerusBlizzerus.rpg.item.RpgItemManager;
+import org.windett.azerusBlizzerus.rpg.level.RpgLeveling;
 
 public class RpgSystemManager {
 
@@ -18,10 +19,16 @@ public class RpgSystemManager {
         return rpgEntityManager;
     }
 
+    public RpgLeveling getRpgLeveling() {
+        return rpgLeveling;
+    }
+
+    private final RpgLeveling rpgLeveling;
     private final RpgItemManager rpgItemManager;
     private final RpgEntityManager rpgEntityManager;
 
     public RpgSystemManager() {
+        this.rpgLeveling = new RpgLeveling();
         this.rpgItemManager = new RpgItemManager();
         this.rpgEntityManager = new RpgEntityManager();
 

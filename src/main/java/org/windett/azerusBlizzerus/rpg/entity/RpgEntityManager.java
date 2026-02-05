@@ -3,9 +3,7 @@ package org.windett.azerusBlizzerus.rpg.entity;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.Ageable;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.*;
 import org.windett.azerusBlizzerus.Main;
 import org.windett.azerusBlizzerus.content.ContentRpgEntity;
 import org.windett.azerusBlizzerus.content.ContentRpgSpawner;
@@ -13,6 +11,7 @@ import org.windett.azerusBlizzerus.events.custom.rpg.entity.mob.RpgMobSpawnEvent
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class RpgEntityManager {
@@ -38,6 +37,9 @@ public class RpgEntityManager {
     public void registerRpgEntity(UUID entityID, RpgEntity rpgEntity) {
         rpgEntityContainerMap.put(entityID, rpgEntity);
     }
+    public void unregisterRpgEntity(RpgEntity rpgEntity) {
+        rpgEntityContainerMap.remove(rpgEntity.getUniqueId());
+    }
 
     public Entity spawnRpgEntity(String context, int id, Location location, ContentRpgSpawner spawner) {
         ContentRpgEntity cte = contentMobMap.get(id);
@@ -48,10 +50,11 @@ public class RpgEntityManager {
         Main.tweakManager.getContextManager().moveToContext(mob, context);
         mob.setCustomName(cte.getName());
         mob.setCustomNameVisible(true);
+        mob.setSilent(true);
         mob.setMaxHealth(cte.getMaxHealth());
         mob.setHealth(cte.getMaxHealth());
-        mob.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(cte.getMovementSpeed());
-        mob.getEquipment().setItemInMainHand(cte.getHand(), false);
+        Objects.requireNonNull(mob.getAttribute(Attribute.MOVEMENT_SPEED)).setBaseValue(cte.getMovementSpeed());
+        Objects.requireNonNull(mob.getEquipment()).setItemInMainHand(cte.getHand(), false);
         mob.getEquipment().setItemInOffHand(cte.getOffHand(), false);
         mob.getEquipment().setHelmet(cte.getHelmet(), false);
         mob.getEquipment().setChestplate(cte.getChestPlate(), false);
@@ -59,6 +62,13 @@ public class RpgEntityManager {
         mob.getEquipment().setBoots(cte.getBoots(), false);
         mob.setCanPickupItems(false);
         mob.setPersistent(false);
+        Vehicle vehicle = (Vehicle) mob.getVehicle();
+        if (vehicle != null && vehicle.isValid()) {
+            if (vehicle instanceof Chicken) {
+                vehicle.remove();
+            }
+        }
+
         if (mob instanceof Ageable) {
             boolean isBaby = cte.isBaby();
             if (isBaby) {

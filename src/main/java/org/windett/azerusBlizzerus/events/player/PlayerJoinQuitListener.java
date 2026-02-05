@@ -13,7 +13,6 @@ import org.windett.azerusBlizzerus.Main;
 import org.windett.azerusBlizzerus.context.ContextManager;
 import org.windett.azerusBlizzerus.utils.cutscene.Scene;
 import org.windett.azerusBlizzerus.utils.cutscene.camera.Camera;
-import org.windett.azerusBlizzerus.rpg.player.data.PlayerData;
 import org.windett.azerusBlizzerus.utils.pathRecorder.ScriptMoveManager;
 import org.windett.azerusBlizzerus.utils.pathRecorder.ScriptedMovement;
 
@@ -26,7 +25,6 @@ public class PlayerJoinQuitListener implements Listener {
     private final ScriptMoveManager scriptMoveManager = Main.tweakManager.getScriptMoveManager();
 
     final Location worldFirstSpawnLocation = new Location(Bukkit.getWorld("world"), -881.932, 66.0, -1575.988, -89.8F, -0.5F);
-    public static final Map<UUID, PlayerData> PLAYERS = new HashMap<>();
 
     @EventHandler
     public void asyncPreJoin(AsyncPlayerPreLoginEvent event) {
@@ -39,9 +37,6 @@ public class PlayerJoinQuitListener implements Listener {
     public void join(PlayerJoinEvent e) {
         final Player player = e.getPlayer();
         ctxManager.setUpEntityContext(player, "global");
-        if (!PLAYERS.containsKey(player.getUniqueId())) {
-            PLAYERS.put(player.getUniqueId(), new PlayerData(player.getUniqueId()));
-        }
         e.joinMessage(null);
         player.setGameMode(GameMode.SURVIVAL);
         player.teleport(worldFirstSpawnLocation);
@@ -218,43 +213,4 @@ public class PlayerJoinQuitListener implements Listener {
 
         }, 20L);
     }
-
-    @EventHandler
-    public void changeSpec(PlayerStopSpectatingEntityEvent e) {
-        final Player player = e.getPlayer();
-        final PlayerData playerData = PLAYERS.get(player.getUniqueId());
-        if (playerData == null) return;
-        if (playerData.isInCutscene()) e.setCancelled(true);
-    }
-
-
-    @EventHandler
-    public void sneak(PlayerToggleSneakEvent e) {
-        final Player player = e.getPlayer();
-        final PlayerData playerData = PLAYERS.get(player.getUniqueId());
-        if (playerData == null) return;
-        if (playerData.isInCutscene()) e.setCancelled(true);
-    }
-
-    @EventHandler
-    public void interact(PlayerInteractEvent e) {
-        final Player player = e.getPlayer();
-        final PlayerData playerData = PLAYERS.get(player.getUniqueId());
-        if (playerData == null) return;
-        if (playerData.isInCutscene()) e.setCancelled(true);
-    }
-
-    @EventHandler
-    public void interactEntity(PlayerInteractEntityEvent e) {
-        final Player player = e.getPlayer();
-        final PlayerData playerData = PLAYERS.get(player.getUniqueId());
-        if (playerData == null) return;
-        if (playerData.isInCutscene()) e.setCancelled(true);
-        Map<Player, LivingEntity> targetMap = Main.tweakManager.getCameraManager().getPlayerCameraCreationTarget();
-        if (targetMap.containsKey(player) && targetMap.get(player) == null) {
-            targetMap.put(player, (LivingEntity) e.getRightClicked());
-            player.sendMessage("Выбрана сущность: " + e.getRightClicked().getUniqueId());
-        }
-    }
-
 }

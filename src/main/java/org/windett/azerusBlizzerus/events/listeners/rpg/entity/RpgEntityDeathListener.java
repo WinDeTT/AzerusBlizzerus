@@ -14,6 +14,5 @@ public class RpgEntityDeathListener implements Listener {
         final LivingEntity entity = event.getEntity();
         RpgDamageable rpgEntity = (RpgDamageable) Main.rpgSystemManager.getRpgEntityManager().asRpgMob(entity);
         if (rpgEntity == null) return;
-        rpgEntity.handleDeath();
     }
 }

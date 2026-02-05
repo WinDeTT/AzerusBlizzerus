@@ -4,6 +4,10 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 import org.windett.azerusBlizzerus.rpg.entity.RpgDamageable;
+import org.windett.azerusBlizzerus.rpg.entity.RpgPlayer;
+
+import java.util.List;
+import java.util.Set;
 
 public class RpgEntityDeathEvent extends Event {
 
@@ -15,7 +19,7 @@ public class RpgEntityDeathEvent extends Event {
 
     private final RpgDamageable rpgDamageable;
 
-    public RpgEntityDeathEvent(RpgDamageable rpgDamageable) {
+    public RpgEntityDeathEvent(RpgDamageable rpgDamageable, Set<RpgPlayer> attackers) {
         this.rpgDamageable = rpgDamageable;
     }
 

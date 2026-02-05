@@ -205,11 +205,8 @@ public class ContentRpgSpawner {
     private boolean hasNearbyPlayers(Location location) {
         List<Player> nearbyPlayers = new ArrayList<>();
         for (Player player : location.getNearbyPlayers(50,50,50)) {
-            /*
             RpgPlayer rpgPlayer = (RpgPlayer) Main.rpgSystemManager.getRpgEntityManager().asRpgMob(player);
             if (rpgPlayer == null) continue;
-
-             */
             WorldContext playerCtx = Main.tweakManager.getContextManager().getEntityContext(player);
             if (playerCtx.getContextName().equals(context)) nearbyPlayers.add(player);
         }

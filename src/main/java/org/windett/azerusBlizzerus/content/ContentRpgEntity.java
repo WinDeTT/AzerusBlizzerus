@@ -18,6 +18,7 @@ public class ContentRpgEntity {
     private final double maxHealth;
     private final int level;
     private final double xpLoot;
+    private final long attackCooldown;
     private final DamageStats damageStats;
     private final DefenceStats defenceStats;
     private final float movementSpeed;
@@ -53,6 +54,7 @@ public class ContentRpgEntity {
         this.maxHealth = builder.maxHealth;
         this.level = builder.level;
         this.xpLoot = builder.xpLoot;
+        this.attackCooldown = builder.attackCooldown;
         this.damageStats = builder.damageStats;
         this.defenceStats = builder.defenceStats;
         this.movementSpeed = builder.movementSpeed;
@@ -77,6 +79,7 @@ public class ContentRpgEntity {
         private double maxHealth = 10.0;
         private int level = 1;
         private double xpLoot = 1.0;
+        private long attackCooldown = 500L;
         private DamageStats damageStats = new DamageStats();
         private DefenceStats defenceStats = new DefenceStats();
         private float movementSpeed = 0.25F;
@@ -115,6 +118,10 @@ public class ContentRpgEntity {
         }
         public Builder xpLoot(double xp) {
             this.xpLoot = xp;
+            return this;
+        }
+        public Builder attackCooldown(long attackCooldown) {
+            this.attackCooldown = attackCooldown;
             return this;
         }
         public Builder physicalDamage(double damage) {
@@ -225,6 +232,10 @@ public class ContentRpgEntity {
 
     public double getXpLoot() {
         return xpLoot;
+    }
+
+    public long getAttackCooldown() {
+        return attackCooldown;
     }
 
     public DamageStats getDamageStats() {

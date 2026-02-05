@@ -16,6 +16,7 @@ public class RpgMobBase {
                 .type(EntityType.ZOMBIE)
                 .specific(ContentRpgEntity.Specific.SIMPLE)
                 .level(1)
+                .xpLoot(0.075)
                 .maxHealth(15.0)
                 .physicalDamage(1.0)
                 .physicalDefence(1.0)
