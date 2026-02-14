@@ -58,6 +58,9 @@ public class CameraCommand extends BukkitCommand {
                 if (cameraFlightPoints == null) {
                     return true;
                 }
+                if (player.getGameMode() != GameMode.SPECTATOR) {
+                    player.setGameMode(GameMode.SPECTATOR);
+                }
                 cameraFlightPoints.add(playerEyeLocation.clone());
                 String pointAddingMessage = "Добавлена локация " + cameraFlightPoints.size();
                 if (cameraFlightPoints.size() == 1)
@@ -120,6 +123,7 @@ public class CameraCommand extends BukkitCommand {
                 }
                 int time = 0;
                 int interpol = 20;
+                Camera.ShakeIntensive intensive = null;
                 try {
                     time = Integer.parseInt(args[1]);
                     if (time < 5) {
@@ -133,19 +137,27 @@ public class CameraCommand extends BukkitCommand {
                 if (args.length > 2) {
                     try {
                         interpol = Integer.parseInt(args[2]);
-                        if (interpol < 1 || interpol > 59) {
+                        if (interpol < 0 || interpol > 59) {
                             player.sendMessage(Component.text("Указано некорректное время интерполяции (arg3)"));
-                            interpol = 20;
+                            interpol = 0;
                         }
                     } catch (NumberFormatException ex) {
                         interpol = 20;
+                    }
+                }
+                if (args.length > 3) {
+                    String intensiveValue = args[3].toUpperCase();
+                    try {
+                        intensive = Camera.ShakeIntensive.valueOf(intensiveValue);
+                    } catch (IllegalArgumentException ex) {
                     }
                 }
                 List<Location> readyCameraPoints = new ArrayList<>();
                 for (Location location : cameraFlightPoints) {
                     readyCameraPoints.add(location.clone());
                 }
-                Cutscene_t1.startRecordedCameraFlying(player, readyCameraPoints, time, interpol, targetEntity);
+
+                Cutscene_t1.startRecordedCameraFlying(player, readyCameraPoints, time, interpol, targetEntity, intensive);
             }
             case "stop" -> {
                 if (player.getGameMode() != GameMode.SPECTATOR) return true;
@@ -294,6 +306,14 @@ public class CameraCommand extends BukkitCommand {
                 if (cameraFlyPoints == null || cameraFlyPoints.isEmpty()) return List.of();
                 if (args.length == 2) return List.of("400");
                 if (args.length == 3) return List.of("20");
+                if (args.length == 4) {
+                    List<String> intensives = new ArrayList<>();
+                    for (Camera.ShakeIntensive intensive : Camera.ShakeIntensive.values()) {
+                        String intensiveKey = intensive.toString().toLowerCase();
+                        intensives.add(intensiveKey);
+                    }
+                    return intensives;
+                }
             }
             case "target" -> {
                 if (cameraFlyPoints == null) return List.of();

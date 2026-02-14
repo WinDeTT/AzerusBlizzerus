@@ -13,7 +13,7 @@ public class RpgMobBase {
         ContentRpgEntity cte = new ContentRpgEntity.Builder()
                 .id(1)
                 .name("Тестовый моб")
-                .type(EntityType.ZOMBIE)
+                .type(EntityType.SKELETON)
                 .specific(ContentRpgEntity.Specific.SIMPLE)
                 .level(1)
                 .xpLoot(0.075)
@@ -24,6 +24,8 @@ public class RpgMobBase {
                 .offHand(Material.BOW)
                 .helmet(Material.LEATHER_HELMET)
                 .speed(0.35F)
+                .aggressive(false)
+                .attackDelay(10)
                 .baby(false)
                 .build();
     }

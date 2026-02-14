@@ -1,7 +1,7 @@
 package org.windett.azerusBlizzerus.events.listeners.entity;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -14,8 +14,8 @@ public class EntityGlobalAttackListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onTryAttack(EntityDamageByEntityEvent event) {
         event.setCancelled(true);
-        final Entity attacker = event.getDamager();
-        final Entity damageTaker = event.getEntity();
+        final LivingEntity attacker = (LivingEntity) event.getDamager();
+        final LivingEntity damageTaker = (LivingEntity) event.getEntity();
         final RpgDamageable rpgAttacker = (RpgDamageable) Main.rpgSystemManager.getRpgEntityManager().asRpgMob(attacker);
         if (rpgAttacker == null) {
             return;
@@ -24,7 +24,11 @@ public class EntityGlobalAttackListener implements Listener {
         if (rpgDamageTaker == null) {
             return;
         }
-        if (System.currentTimeMillis() - rpgAttacker.getLastAttackMillis() < rpgAttacker.getAttackCooldown()) return;
-        rpgDamageTaker.handleDamage(rpgAttacker, event.getFinalDamage());
+        if (damageTaker instanceof Player) {
+            return;
+        }
+        if (System.currentTimeMillis() - rpgAttacker.getLastAttackMillis() < rpgAttacker.getAttackDelay()) return;
+        double damage = event.getFinalDamage();
+        rpgDamageTaker.handleDamage(rpgAttacker, damage);
     }
 }

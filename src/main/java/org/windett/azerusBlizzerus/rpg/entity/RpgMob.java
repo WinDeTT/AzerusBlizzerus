@@ -1,12 +1,19 @@
 package org.windett.azerusBlizzerus.rpg.entity;
 
+import io.papermc.paper.entity.LookAnchor;
+import net.minecraft.world.entity.Mob;
 import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.craftbukkit.entity.CraftEntity;
+import org.bukkit.craftbukkit.entity.CraftMob;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.windett.azerusBlizzerus.Main;
 import org.windett.azerusBlizzerus.content.ContentRpgEntity;
-import org.windett.azerusBlizzerus.content.ContentRpgSpawner;
+import org.windett.azerusBlizzerus.rpg.entity.spawner.ContentRpgSpawner;
 import org.windett.azerusBlizzerus.context.WorldContext;
 import org.windett.azerusBlizzerus.events.custom.rpg.RpgEntityDeathEvent;
 import org.windett.azerusBlizzerus.stats.DamageStats;
@@ -14,19 +21,26 @@ import org.windett.azerusBlizzerus.stats.DefenceStats;
 
 import java.util.*;
 
-public class RpgMob implements RpgEntity, RpgDamageable{
+public class RpgMob implements RpgEntity, RpgDamageable {
 
     private final UUID uuid;
     private final ContentRpgEntity contentRpgEntity;
     private ContentRpgSpawner spawner;
     private long lastAttackMillis;
     public DamagersTracker damagersTracker;
+    private RpgPlayer target;
+    private BukkitTask searchRunnable;
+    private BukkitTask navigateRunnable;
+    private BukkitTask attackRunnable;
 
     public RpgMob(UUID uuid, ContentRpgEntity contentRpgEntity, ContentRpgSpawner spawner) {
         this.uuid = uuid;
         this.contentRpgEntity = contentRpgEntity;
         this.spawner = spawner;
         this.lastAttackMillis = System.currentTimeMillis();
+        if (contentRpgEntity.isAggressive()) {
+            searchTarget();
+        }
     }
 
     @Override
@@ -53,15 +67,16 @@ public class RpgMob implements RpgEntity, RpgDamageable{
 
     @Override
     public void restoreHealth() {
+        if (!isValid()) return;
         setHealth(getMaxHealth());
 
-        List<RpgPlayer> nearbyPlayers = getNearbyPlayers();
+        List<RpgPlayer> nearbyPlayers = getNearbyPlayers(35);
         if (nearbyPlayers.isEmpty()) {
             return;
         }
         for (RpgPlayer rpgPlayer : nearbyPlayers) {
             Player player = (Player) rpgPlayer.asBukkitEntity();
-            player.spawnParticle(Particle.HEART, asBukkitEntity().getEyeLocation().add(0,1,0), 1, 0,0,0);
+            player.spawnParticle(Particle.HEART, asBukkitEntity().getEyeLocation().add(0, 1, 0), 1, 0, 0, 0);
         }
     }
 
@@ -76,8 +91,8 @@ public class RpgMob implements RpgEntity, RpgDamageable{
     }
 
     @Override
-    public long getAttackCooldown() {
-        return contentRpgEntity.getAttackCooldown();
+    public long getAttackDelay() {
+        return contentRpgEntity.getAttackDelay();
     }
 
     @Override
@@ -95,6 +110,7 @@ public class RpgMob implements RpgEntity, RpgDamageable{
         handleDamage(null, damage);
     }
 
+
     @Override
     public void handleDamage(RpgDamageable attacker, double damage) {
         if (!isValid()) return;
@@ -103,12 +119,28 @@ public class RpgMob implements RpgEntity, RpgDamageable{
             if (attacker instanceof RpgPlayer rpgPlayer) {
                 if (damagersTracker == null) {
                     damagersTracker = new DamagersTracker(this, rpgPlayer, damage);
-                } else damagersTracker.merge(rpgPlayer, damage);
+                    this.target = rpgPlayer;
+                } else {
+                    damagersTracker.merge(rpgPlayer, damage);
+                    RpgPlayer oldTarget = this.target;
+                    if (oldTarget == null || !damagersTracker.getDamageMap().containsKey(oldTarget)) {
+                        this.target = rpgPlayer;
+                    }
+                }
+                if (!contentRpgEntity.isAggressive()) {
+                    if (navigateRunnable == null) {
+                        navigateToTarget();
+                        attackTarget();
+                    }
+                }
+                attacker.updateAttackCooldown();
             }
-            attacker.updateAttackCooldown();
+            RpgEntity rpgEntitMob = this;
+            RpgEntity rpgEntityAttacker = (RpgEntity) attacker;
+            Bukkit.broadcastMessage("цель сущности " + rpgEntitMob.getName() + ":" + rpgEntityAttacker.getName());
         }
 
-        List<RpgPlayer> nearestPlayers = getNearbyPlayers();
+        List<RpgPlayer> nearestPlayers = getNearbyPlayers(35);
         if (!nearestPlayers.isEmpty()) {
             BlockData redstoneBlockData = Material.REDSTONE_BLOCK.createBlockData();
             for (RpgPlayer rpgPlayer : nearestPlayers) {
@@ -143,20 +175,101 @@ public class RpgMob implements RpgEntity, RpgDamageable{
                     if (damagePercentage >= 0.05F) {
                         double playerXpReward = mobXpReward * damagePercentage;
                         rpgPlayer.getPlayerCharacter().addXp(playerXpReward);
-                        rpgPlayer.asBukkitEntity().sendMessage("Вы нанесли " + String.format("%.3f", playerDamage) + " урона!");
                     }
                 }
             }
-            attackers = attackerMap.keySet();
+            attackers = new HashSet<>(attackerMap.keySet());
 
             damagersTracker.stop();
             damagersTracker = null;
         }
+        cleanup();
         asBukkitEntity().setHealth(0);
-        Bukkit.getPluginManager().callEvent(new RpgEntityDeathEvent(this,  attackers));
+        Bukkit.getPluginManager().callEvent(new RpgEntityDeathEvent(this, attackers));
         if (spawner != null) {
             spawner.setKilled();
         }
+    }
+
+    public void searchTarget() {
+        double maxDistance = contentRpgEntity.getAgroRange();
+
+        searchRunnable = new BukkitRunnable() {
+            List<RpgPlayer> sortedNearestPlayer;
+            public void run() {
+                if (!isValid()) {
+                    cancel();
+                    searchRunnable = null;
+                    return;
+                }
+                Bukkit.broadcastMessage("Сущность ищет цель!");
+                sortedNearestPlayer = getNearbyPlayers(maxDistance);
+                if (sortedNearestPlayer != null) {
+                    sortedNearestPlayer.sort(Comparator.comparingDouble(rp -> rp.getLocation().distanceSquared(getLocation())));
+
+                    for (RpgPlayer rpgPlayer : sortedNearestPlayer) {
+                        LivingEntity player = (LivingEntity) rpgPlayer.asBukkitEntity();
+                        LivingEntity mob = asBukkitEntity();
+                        if (mob.hasLineOfSight(player)) {
+                            setTarget(rpgPlayer);
+                            cancel();
+                            searchRunnable = null;
+                            navigateToTarget();
+                            attackTarget();
+                            break;
+                        }
+                    }
+                }
+            }
+        }.runTaskTimer(Main.instance,30L,30L);
+    }
+
+    public void navigateToTarget() {
+        CraftMob rpgMob = (CraftMob) asBukkitEntity();
+        navigateRunnable = new BukkitRunnable() {
+            public void run() {
+                if (getTarget() == null || !getTarget().isValid() || getTarget().getLocation().distanceSquared(getLocation()) >= contentRpgEntity.getAgroRange() * contentRpgEntity.getAgroRange() ||
+                        (getTargetEntity() instanceof Player player && player.getGameMode().isInvulnerable())) {
+                    cancel();
+                    navigateRunnable = null;
+                    if (attackRunnable != null) {
+                        attackRunnable.cancel();
+                        attackRunnable = null;
+                    }
+                    if (contentRpgEntity.isAggressive()) {
+                        searchTarget();
+                    }
+                    return;
+                }
+                if (getLocation().distanceSquared(getTarget().getLocation()) > contentRpgEntity.getAttackRange() * contentRpgEntity.getAttackRange()) {
+                    Bukkit.broadcastMessage("Ищет путь к цели!");
+                    rpgMob.getHandle().getNavigation().moveTo(((CraftEntity) getTarget().asBukkitEntity()).getHandle(), 1.0);
+                }
+            }
+
+        }.runTaskTimer(Main.instance, 0,10L);
+    }
+
+    public void attackTarget() {
+        attackRunnable = new BukkitRunnable() {
+
+            public void run() {
+                if (getTarget() != null && getTarget().isValid()) {
+                    if (getLocation().distanceSquared(getTarget().getLocation()) <= contentRpgEntity.getAttackRange() * contentRpgEntity.getAttackRange()) {
+                        Bukkit.broadcastMessage("Пытается атаковать!");
+                        asBukkitEntity().swingMainHand();
+                        asBukkitEntity().lookAt(((LivingEntity)getTarget().asBukkitEntity()).getEyeLocation(), LookAnchor.EYES);
+                        attack(getTarget(), contentRpgEntity.getDamageStats().getPhysicalDamage());
+                    }
+                }
+            }
+
+        }.runTaskTimer(Main.instance, 0, getAttackDelay());
+    }
+
+    public void attack(RpgPlayer rpgPlayer, double damage) {
+        if (rpgPlayer == null) return;
+        rpgPlayer.handleDamage(this, damage);
     }
 
     @Override
@@ -169,7 +282,8 @@ public class RpgMob implements RpgEntity, RpgDamageable{
         return contentRpgEntity.getName();
     }
 
-    @Override public String getContext() {
+    @Override
+    public String getContext() {
         return Main.tweakManager.getContextManager().getEntityContext(asBukkitEntity()).getContextName();
     }
 
@@ -192,16 +306,16 @@ public class RpgMob implements RpgEntity, RpgDamageable{
 
     @Override
     public boolean isValid() {
-        return asBukkitEntity().isValid();
+        return asBukkitEntity() != null && asBukkitEntity().isValid();
     }
 
     @Override
-    public List<RpgPlayer> getNearbyPlayers() {
+    public List<RpgPlayer> getNearbyPlayers(double distance) {
         if (!isValid()) return null;
         final WorldContext context = Main.tweakManager.getContextManager().getEntityContext(asBukkitEntity());
         if (context == null) return List.of();
         List<RpgPlayer> nearbyPlayers = new ArrayList<>();
-        for (Player player : asBukkitEntity().getLocation().getNearbyPlayers(35,35,35)) {
+        for (Player player : asBukkitEntity().getLocation().getNearbyPlayers(distance)) {
             RpgPlayer rpgPlayer = (RpgPlayer) Main.rpgSystemManager.getRpgEntityManager().asRpgMob(player);
             if (rpgPlayer == null) continue;
             if (!rpgPlayer.getContext().equals(context.getContextName())) continue;
@@ -215,12 +329,44 @@ public class RpgMob implements RpgEntity, RpgDamageable{
         Main.rpgSystemManager.getRpgEntityManager().unregisterRpgEntity(this);
     }
 
+    @Override
+    public void cleanup() {
+        if (searchRunnable != null) {
+            searchRunnable.cancel();
+            searchRunnable = null;
+        }
+        if (navigateRunnable != null) {
+            navigateRunnable.cancel();
+            navigateRunnable = null;
+        }
+        if (attackRunnable != null) {
+            attackRunnable.cancel();
+            attackRunnable = null;
+        }
+        handleUnregister();
+    }
+
     public ContentRpgSpawner getSpawner() {
         return spawner;
     }
+
+    public RpgPlayer getTarget() {
+        return target;
+    }
+
+    public void setTarget(RpgPlayer target) {
+        this.target = target;
+    }
+
+    public Player getTargetEntity() {
+        if (this.target == null) return null;
+        return (Player) target.asBukkitEntity();
+    }
+
     public DamagersTracker getDamagersTracker() {
         return damagersTracker;
     }
+
     public void destroy() {
         if (isValid()) return;
         handleDeath();

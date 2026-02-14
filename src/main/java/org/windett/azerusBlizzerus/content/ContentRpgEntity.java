@@ -18,7 +18,7 @@ public class ContentRpgEntity {
     private final double maxHealth;
     private final int level;
     private final double xpLoot;
-    private final long attackCooldown;
+    private final int attackDelay;
     private final DamageStats damageStats;
     private final DefenceStats defenceStats;
     private final float movementSpeed;
@@ -29,6 +29,9 @@ public class ContentRpgEntity {
     private final ItemStack chestPlate;
     private final ItemStack leggings;
     private final ItemStack boots;
+    private final boolean aggressive;
+    private final int agroRange;
+    private final double attackRange;
 
 
     public enum Specific {
@@ -54,7 +57,7 @@ public class ContentRpgEntity {
         this.maxHealth = builder.maxHealth;
         this.level = builder.level;
         this.xpLoot = builder.xpLoot;
-        this.attackCooldown = builder.attackCooldown;
+        this.attackDelay = builder.attackCooldown;
         this.damageStats = builder.damageStats;
         this.defenceStats = builder.defenceStats;
         this.movementSpeed = builder.movementSpeed;
@@ -67,6 +70,9 @@ public class ContentRpgEntity {
         this.leggings = builder.leggings;
         this.boots = builder.boots;
 
+        this.aggressive = builder.aggressive;
+        this.agroRange = builder.agroRange;
+        this.attackRange = builder.attackRange;
 
         Main.rpgSystemManager.getRpgEntityManager().registerContentMob(this.id, this);
     }
@@ -79,7 +85,7 @@ public class ContentRpgEntity {
         private double maxHealth = 10.0;
         private int level = 1;
         private double xpLoot = 1.0;
-        private long attackCooldown = 500L;
+        private int attackCooldown = 20;
         private DamageStats damageStats = new DamageStats();
         private DefenceStats defenceStats = new DefenceStats();
         private float movementSpeed = 0.25F;
@@ -91,6 +97,10 @@ public class ContentRpgEntity {
         private ItemStack chestPlate = null;
         private ItemStack leggings = null;
         private ItemStack boots = null;
+
+        private boolean aggressive = true;
+        private int agroRange = 20;
+        private double attackRange = 2.0;
 
         public Builder id(int id) {
             this.id = id;
@@ -120,8 +130,8 @@ public class ContentRpgEntity {
             this.xpLoot = xp;
             return this;
         }
-        public Builder attackCooldown(long attackCooldown) {
-            this.attackCooldown = attackCooldown;
+        public Builder attackDelay(int attackDelay) {
+            this.attackCooldown = attackDelay;
             return this;
         }
         public Builder physicalDamage(double damage) {
@@ -194,6 +204,18 @@ public class ContentRpgEntity {
             this.boots = bootsStack;
             return this;
         }
+        public Builder aggressive(boolean aggressive) {
+            this.aggressive = aggressive;
+            return this;
+        }
+        public Builder agroRange(int range) {
+            this.agroRange = range;
+            return this;
+        }
+        public Builder attackRange(double range) {
+            this.attackRange = range;
+            return this;
+        }
 
         public ContentRpgEntity build() {
             return new ContentRpgEntity(this);
@@ -203,6 +225,7 @@ public class ContentRpgEntity {
             if (itemStack == null || itemStack.getType() == Material.AIR) return;
             final ItemMeta meta = itemStack.getItemMeta();
             meta.setUnbreakable(true);
+            itemStack.setItemMeta(meta);
         }
     }
 
@@ -234,8 +257,8 @@ public class ContentRpgEntity {
         return xpLoot;
     }
 
-    public long getAttackCooldown() {
-        return attackCooldown;
+    public int getAttackDelay() {
+        return attackDelay;
     }
 
     public DamageStats getDamageStats() {
@@ -276,5 +299,14 @@ public class ContentRpgEntity {
 
     public ItemStack getBoots() {
         return boots;
+    }
+    public boolean isAggressive() {
+        return aggressive;
+    }
+    public int getAgroRange() {
+        return agroRange;
+    }
+    public double getAttackRange() {
+        return attackRange;
     }
 }

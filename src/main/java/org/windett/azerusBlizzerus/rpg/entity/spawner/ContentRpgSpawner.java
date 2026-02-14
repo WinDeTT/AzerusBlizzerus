@@ -1,16 +1,16 @@
-package org.windett.azerusBlizzerus.content;
+package org.windett.azerusBlizzerus.rpg.entity.spawner;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.entity.Creature;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.windett.azerusBlizzerus.Main;
+import org.windett.azerusBlizzerus.content.ContentRpgEntity;
 import org.windett.azerusBlizzerus.context.ContextManager;
 import org.windett.azerusBlizzerus.context.WorldContext;
 import org.windett.azerusBlizzerus.rpg.entity.RpgMob;

@@ -1,12 +1,20 @@
 package org.windett.azerusBlizzerus.rpg.entity;
 
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.craftbukkit.entity.CraftMob;
 import org.bukkit.entity.*;
 import org.windett.azerusBlizzerus.Main;
 import org.windett.azerusBlizzerus.content.ContentRpgEntity;
-import org.windett.azerusBlizzerus.content.ContentRpgSpawner;
+import org.windett.azerusBlizzerus.rpg.entity.pathfinder.goalSelector.CustomRpgMeleeAttackGoal;
+import org.windett.azerusBlizzerus.rpg.entity.pathfinder.targetSelector.CustomRpgTargetGoal;
+import org.windett.azerusBlizzerus.rpg.entity.spawner.ContentRpgSpawner;
 import org.windett.azerusBlizzerus.events.custom.rpg.entity.mob.RpgMobSpawnEvent;
 
 import java.util.HashMap;
@@ -78,10 +86,25 @@ public class RpgEntityManager {
                 ((Ageable) mob).setAdult();
             }
         }
+
+        CraftMob craftMob = (CraftMob) mob;
+        clearPathfinder(mob);
+        GoalSelector goalSelector = craftMob.getHandle().goalSelector;
+        goalSelector.addGoal(0, new FloatGoal(craftMob.getHandle()));
+        goalSelector.addGoal(1, new RandomStrollGoal((PathfinderMob) craftMob.getHandle(), 1.0));
+        goalSelector.addGoal(2, new RandomLookAroundGoal(craftMob.getHandle()));
+
+
         final RpgMob rpgMob = new RpgMob(mob.getUniqueId(), cte, spawner);
         registerRpgEntity(mob.getUniqueId(), rpgMob);
         Bukkit.getPluginManager().callEvent(new RpgMobSpawnEvent(rpgMob));
         return mob;
+    }
+
+    public void clearPathfinder(Entity entity) {
+        CraftMob cm = (CraftMob) entity;
+        cm.getHandle().goalSelector.removeAllGoals(goal -> true);
+        cm.getHandle().targetSelector.removeAllGoals(goal -> true);
     }
 
     public RpgEntity asRpgMob(Entity entity) {

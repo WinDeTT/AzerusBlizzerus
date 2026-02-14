@@ -21,14 +21,14 @@ public class RpgPlayer implements RpgEntity, RpgDamageable {
     private final Player bukkitPlayer;
     private final String name;
     private final PlayerCharacter playerCharacter;
-    private long attackCooldown;
+    private long attackDelay;
     private long lastAttackMillis;
 
     public RpgPlayer(Player player) {
         this.bukkitPlayer = player;
         this.name = player.getName();
         this.playerCharacter = new PlayerCharacter(this);
-        this.attackCooldown = 350L;
+        this.attackDelay = 350L;
         this.lastAttackMillis = System.currentTimeMillis();
     }
 
@@ -68,8 +68,8 @@ public class RpgPlayer implements RpgEntity, RpgDamageable {
     }
 
     @Override
-    public long getAttackCooldown() {
-        return attackCooldown;
+    public long getAttackDelay() {
+        return attackDelay;
     }
 
     @Override
@@ -90,13 +90,17 @@ public class RpgPlayer implements RpgEntity, RpgDamageable {
     @Override
     public void handleDamage(RpgDamageable attacker, double damage) {
         bukkitPlayer.damage(damage);
-        List<RpgPlayer> nearestPlayers = getNearbyPlayers();
+        List<RpgPlayer> nearestPlayers = getNearbyPlayers(35);
         if (nearestPlayers.isEmpty()) return;
         BlockData redstoneBlockData = Material.REDSTONE_BLOCK.createBlockData();
         for (RpgPlayer rpgPlayer : nearestPlayers) {
             Player player = (Player) rpgPlayer.asBukkitEntity();
-            player.spawnParticle(Particle.BLOCK, asBukkitEntity().getLocation(), 50, 0.15,0.3,0.15, redstoneBlockData);
+            player.spawnParticle(Particle.BLOCK, asBukkitEntity().getLocation().add(0, 0.75, 0), 50, 0.35, 0.4, 0.35, redstoneBlockData);
+
             player.playSound(asBukkitEntity().getLocation(), Sound.ENTITY_PLAYER_HURT, 1,1);
+        }
+        if (attacker instanceof RpgPlayer) {
+            attacker.updateAttackCooldown();
         }
     }
 
@@ -137,15 +141,18 @@ public class RpgPlayer implements RpgEntity, RpgDamageable {
 
     @Override
     public boolean isValid() {
+        if (!bukkitPlayer.isOnline()) {
+            handleUnregister();
+        }
         return Main.rpgSystemManager.getRpgEntityManager().getRpgEntityContainerMap().containsKey(getUniqueId());
     }
 
     @Override
-    public List<RpgPlayer> getNearbyPlayers() {
+    public List<RpgPlayer> getNearbyPlayers(double distance) {
         final WorldContext context = Main.tweakManager.getContextManager().getEntityContext(asBukkitEntity());
         if (context == null) return List.of();
         List<RpgPlayer> nearbyPlayers = new ArrayList<>();
-        for (Player player : asBukkitEntity().getLocation().getNearbyPlayers(35,35,35)) {
+        for (Player player : asBukkitEntity().getLocation().getNearbyPlayers(distance,distance,distance)) {
             RpgPlayer rpgPlayer = (RpgPlayer) Main.rpgSystemManager.getRpgEntityManager().asRpgMob(player);
             if (rpgPlayer == null) continue;
             if (!rpgPlayer.getContext().equals(context.getContextName())) continue;
@@ -157,6 +164,11 @@ public class RpgPlayer implements RpgEntity, RpgDamageable {
     @Override
     public void handleUnregister() {
         Main.rpgSystemManager.getRpgEntityManager().unregisterRpgEntity(this);
+    }
+
+    @Override
+    public void cleanup() {
+        handleUnregister();
     }
 
     public PlayerCharacter getPlayerCharacter() {

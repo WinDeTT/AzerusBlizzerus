@@ -1,26 +1,34 @@
 package org.windett.azerusBlizzerus.rpg.entity;
 
 import it.unimi.dsi.fastutil.Pair;
+import org.bukkit.craftbukkit.entity.CraftMob;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.windett.azerusBlizzerus.Main;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DamagersTracker {
 
     private static final long LONG_INACTIVE_TIME = 10000L;
-    private final Map<RpgPlayer, Pair<Double, Long>> damageMap = new HashMap<>();
+    private final Map<RpgPlayer, Pair<Double, Long>> damageMap = new ConcurrentHashMap<>();
     private BukkitTask trackerRunnable = null;
 
     public DamagersTracker(RpgMob rpgMob, RpgPlayer rpgPlayer, double damage) {
+        CraftMob craftMob = (CraftMob) rpgMob.asBukkitEntity();
         merge(rpgPlayer, damage);
 
         trackerRunnable = new BukkitRunnable() {
             public void run() {
+                if (!rpgMob.isValid()) {
+                    cancel();
+                    trackerRunnable = null;
+                    return;
+                }
                 Set<RpgPlayer> damagers = damageMap.keySet();
                 long currentMillis = System.currentTimeMillis();
                 for (RpgPlayer damager : damagers) {

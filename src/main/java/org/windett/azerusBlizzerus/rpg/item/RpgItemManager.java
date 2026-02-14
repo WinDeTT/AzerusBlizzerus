@@ -33,6 +33,14 @@ public class RpgItemManager {
     public RpgItemManager() {
     }
 
+    public void registerRpgItem(RpgItem rpgItem) {
+        rpgItemMap.put(rpgItem.getId(), rpgItem);
+    }
+
+    public RpgItem getRpgItem(int id) {
+        return rpgItemMap.get(id);
+    }
+
 
     public void openRecipe(Player player, int recipeId) {
         ItemRecipe recipe = itemRecipeMap.get(recipeId);

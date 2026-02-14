@@ -16,13 +16,14 @@ public interface RpgDamageable {
     DamageStats getDamageStats();
     DefenceStats getDefenceStats();
 
-    long getAttackCooldown();
+    long getAttackDelay();
     long getLastAttackMillis();
     void updateAttackCooldown();
     void handleDamage(double damage);
     void handleDamage(RpgDamageable attacker, double damage);
     void handleDeath();
+    void cleanup();
 
-    List<RpgPlayer> getNearbyPlayers();
+    List<RpgPlayer> getNearbyPlayers(double distance);
 
 }

@@ -9,8 +9,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.windett.azerusBlizzerus.command.camera.CameraCommand;
 import org.windett.azerusBlizzerus.command.context.ContextCommand;
 import org.windett.azerusBlizzerus.command.pathRecorder.PathRecorderCommand;
-import org.windett.azerusBlizzerus.command.rpg.RpgToolCommand;
+import org.windett.azerusBlizzerus.command.rpg.admin.RpgToolCommand;
 import org.windett.azerusBlizzerus.command.rpg.item.RecipeOpenCommand;
+import org.windett.azerusBlizzerus.content.contentBase.RpgItemBase;
 import org.windett.azerusBlizzerus.content.contentBase.RpgMobBase;
 import org.windett.azerusBlizzerus.content.contentBase.RpgSpawnerBase;
 import org.windett.azerusBlizzerus.context.ContextListener;
@@ -57,8 +58,9 @@ public final class Main extends JavaPlugin {
         tweakManager = new TweakManager();
         rpgSystemManager = new RpgSystemManager();
         rpgSystemManager.getRpgItemManager().registerRecipes();
-        RpgMobBase rpgMobBase = new RpgMobBase();
+        final RpgMobBase rpgMobBase = new RpgMobBase();
         rpgMobBase.init();
+        final RpgItemBase rpgItemBase = new RpgItemBase();
 
         final PlayerListenerJoinQuit playerListenerJoinQuit = new PlayerListenerJoinQuit();
         final ScriptMoveListener scriptMoveListener = new ScriptMoveListener();

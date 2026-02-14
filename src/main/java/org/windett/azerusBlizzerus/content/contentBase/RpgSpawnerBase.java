@@ -1,6 +1,6 @@
 package org.windett.azerusBlizzerus.content.contentBase;
 
-import org.windett.azerusBlizzerus.content.ContentRpgSpawner;
+import org.windett.azerusBlizzerus.rpg.entity.spawner.ContentRpgSpawner;
 
 public class RpgSpawnerBase {
 

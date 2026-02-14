@@ -1,22 +1,21 @@
 package org.windett.azerusBlizzerus.utils.cutscene.camera;
 
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.windett.azerusBlizzerus.Main;
+import org.windett.azerusBlizzerus.persistenceData.NamespacedHelper;
 import org.windett.azerusBlizzerus.utils.cutscene.Scene;
 
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.bukkit.Location.normalizePitch;
 
 public class Camera {
 
@@ -33,9 +32,9 @@ public class Camera {
     public enum ShakeIntensive {
         LOW(1),
         MEDIUM(3),
-        HIGH(5),
-        HYPER(8),
-        HYPER_TURBO(12);
+        HIGH(6),
+        HYPER(10),
+        HYPER_TURBO(15);
 
         public int getIntensiveAmount() {
             return intensiveAmount;
@@ -60,11 +59,13 @@ public class Camera {
 
     private BukkitTask moveRunnable = null;
     private BukkitTask pointMoveRunnable = null;
+    private Runnable onMoveEnding = null;
 
 
     public Camera(Scene scene, Location location) {
         this.inScene = scene;
         this.cameraEntity = (ItemDisplay) location.getWorld().spawnEntity(location, EntityType.ITEM_DISPLAY);
+        this.cameraEntity.getPersistentDataContainer().set(NamespacedHelper.isCameraKey, PersistentDataType.BOOLEAN, true);
         this.cameraEntity.setItemStack(displayStack);
         Main.tweakManager.getCameraManager().getWorkingCameras().add(this);
     }
@@ -208,9 +209,16 @@ public class Camera {
                     if (current >= locationsCount) {
                         cancel();
                         pointMoveRunnable = null;
+                        Bukkit.getScheduler().runTaskLater(Main.instance, () -> {
+                            if (onMoveEnding != null) {
+                                onMoveEnding.run();
+                            }
+                        },interpolation);
                     } else {
-                        moveTo(points.get(current), time / locationsCount, interpolation);
-                        step = 0;
+                        if (current <= locationsCount - 1) {
+                            moveTo(points.get(current), time / locationsCount, interpolation);
+                            step = 0;
+                        }
                     }
                 }
             }
@@ -250,6 +258,9 @@ public class Camera {
         player.setSpectatorTarget(cameraEntity);
     }
 
+    public void setOnMoveEnding(Runnable task) {
+        this.onMoveEnding = task;
+    }
 
     public void remove() {
         stopCamera();

@@ -3,6 +3,7 @@ package org.windett.azerusBlizzerus.events.listeners.entity.player;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -31,6 +32,7 @@ public class PlayerListenerJoinQuit implements Listener {
     @EventHandler
     public void join(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
+
         contextManager.setUpEntityContext(player, "global");
         event.joinMessage(null);
         player.setGameMode(GameMode.SURVIVAL);
