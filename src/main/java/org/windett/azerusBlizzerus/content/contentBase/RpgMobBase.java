@@ -24,7 +24,7 @@ public class RpgMobBase {
                 .offHand(Material.BOW)
                 .helmet(Material.LEATHER_HELMET)
                 .speed(0.35F)
-                .aggressive(false)
+                .aggressive(true)
                 .attackDelay(10)
                 .baby(false)
                 .build();

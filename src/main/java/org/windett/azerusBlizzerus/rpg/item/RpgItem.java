@@ -15,6 +15,7 @@ public class RpgItem {
     private int requirementLevel;
     private WeaponEnum.WeaponType weaponType;
     private WeaponEnum.WeaponSubType weaponSubType;
+    private boolean autogen;
 
     public RpgItem(Builder builder) {
         this.id = builder.id;
@@ -22,8 +23,10 @@ public class RpgItem {
         this.material = builder.material;
         this.itemType = builder.itemType;
         this.itemRarity = builder.itemRarity;
+        this.requirementLevel = builder.requirementLevel;
         this.weaponType = builder.weaponType;
         this.weaponSubType = builder.weaponSubType;
+        this.autogen = builder.autogen;
 
         if (id < 0) return;
         Main.rpgSystemManager.getRpgItemManager().registerRpgItem(this);
@@ -38,6 +41,7 @@ public class RpgItem {
         private int requirementLevel = 1;
         private WeaponEnum.WeaponType weaponType = WeaponEnum.WeaponType.MELEE;
         private WeaponEnum.WeaponSubType weaponSubType = WeaponEnum.WeaponSubType.SWORD;
+        private boolean autogen = false;
 
         public Builder id(int id) {
             this.id = id;
@@ -59,7 +63,7 @@ public class RpgItem {
             this.itemRarity = rarity;
             return this;
         }
-        public Builder setRequirementLevel(int level) {
+        public Builder level(int level) {
             if (level < 1) level = 1;
             this.requirementLevel = level;
             return this;
@@ -70,6 +74,10 @@ public class RpgItem {
         }
         public Builder weaponSubType(WeaponEnum.WeaponSubType weaponSubType) {
             this.weaponSubType = weaponSubType;
+            return this;
+        }
+        public Builder autogen(boolean autogen) {
+            this.autogen = autogen;
             return this;
         }
         public RpgItem build() {
@@ -136,7 +144,13 @@ public class RpgItem {
     public Material getMaterial() {
         return material;
     }
+    public ItemType getItemType() {
+        return itemType;
+    }
     public ItemRarity getItemRarity() {
         return itemRarity;
+    }
+    public int getRequirementLevel() {
+        return requirementLevel;
     }
 }

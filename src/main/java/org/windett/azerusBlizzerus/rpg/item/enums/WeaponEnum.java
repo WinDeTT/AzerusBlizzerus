@@ -7,6 +7,10 @@ public class WeaponEnum {
         BOW("bow"),
         WAND("wand");
 
+        public String getPdc() {
+            return pdc;
+        }
+
         private final String pdc;
 
         WeaponType(String pdc) {
@@ -21,6 +25,14 @@ public class WeaponEnum {
         BOW(WeaponType.BOW, "bow"),
         MAGIC_STICK(WeaponType.WAND, "magic_stick"),
         STAFF(WeaponType.WAND, "staff");
+
+        public WeaponType getWeaponType() {
+            return weaponType;
+        }
+
+        public String getPdc() {
+            return pdc;
+        }
 
         private final WeaponType weaponType;
         private final String pdc;

@@ -5,6 +5,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.player.Player;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
@@ -86,13 +87,12 @@ public class RpgEntityManager {
                 ((Ageable) mob).setAdult();
             }
         }
+        if (mob instanceof Creature) {
+            ((Creature) mob).setLeftHanded(false);
+        }
 
-        CraftMob craftMob = (CraftMob) mob;
-        clearPathfinder(mob);
-        GoalSelector goalSelector = craftMob.getHandle().goalSelector;
-        goalSelector.addGoal(0, new FloatGoal(craftMob.getHandle()));
-        goalSelector.addGoal(1, new RandomStrollGoal((PathfinderMob) craftMob.getHandle(), 1.0));
-        goalSelector.addGoal(2, new RandomLookAroundGoal(craftMob.getHandle()));
+        clearPathfinders(mob);
+        initPathfinders(mob, cte);
 
 
         final RpgMob rpgMob = new RpgMob(mob.getUniqueId(), cte, spawner);
@@ -101,10 +101,19 @@ public class RpgEntityManager {
         return mob;
     }
 
-    public void clearPathfinder(Entity entity) {
+    public static void clearPathfinders(LivingEntity entity) {
         CraftMob cm = (CraftMob) entity;
         cm.getHandle().goalSelector.removeAllGoals(goal -> true);
         cm.getHandle().targetSelector.removeAllGoals(goal -> true);
+    }
+
+    public static void initPathfinders(LivingEntity entity, ContentRpgEntity contentRpgEntity) {
+        CraftMob craftMob = (CraftMob) entity;
+        GoalSelector goalSelector = craftMob.getHandle().goalSelector;
+        goalSelector.addGoal(0, new FloatGoal(craftMob.getHandle()));
+        goalSelector.addGoal(1, new LookAtPlayerGoal(craftMob.getHandle(), Player.class, (float) contentRpgEntity.getAgroRange(), 0.05F));
+        goalSelector.addGoal(2, new RandomLookAroundGoal(craftMob.getHandle()));
+        goalSelector.addGoal(3, new RandomStrollGoal((PathfinderMob) craftMob.getHandle(), 1.0, 20));
     }
 
     public RpgEntity asRpgMob(Entity entity) {

@@ -2,6 +2,8 @@ package org.windett.azerusBlizzerus.rpg.entity;
 
 import io.papermc.paper.entity.LookAnchor;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.entity.CraftEntity;
@@ -196,6 +198,7 @@ public class RpgMob implements RpgEntity, RpgDamageable {
 
         searchRunnable = new BukkitRunnable() {
             List<RpgPlayer> sortedNearestPlayer;
+
             public void run() {
                 if (!isValid()) {
                     cancel();
@@ -208,20 +211,23 @@ public class RpgMob implements RpgEntity, RpgDamageable {
                     sortedNearestPlayer.sort(Comparator.comparingDouble(rp -> rp.getLocation().distanceSquared(getLocation())));
 
                     for (RpgPlayer rpgPlayer : sortedNearestPlayer) {
-                        LivingEntity player = (LivingEntity) rpgPlayer.asBukkitEntity();
+                        Player player = (Player) rpgPlayer.asBukkitEntity();
+                        if (player.getGameMode().isInvulnerable()) continue;
                         LivingEntity mob = asBukkitEntity();
-                        if (mob.hasLineOfSight(player)) {
-                            setTarget(rpgPlayer);
-                            cancel();
-                            searchRunnable = null;
-                            navigateToTarget();
-                            attackTarget();
-                            break;
-                        }
+                        if (!mob.hasLineOfSight(player)) continue;
+                        setTarget(rpgPlayer);
+                        cancel();
+                        searchRunnable = null;
+                        CraftMob craftMob = (CraftMob) mob;
+                        RpgEntityManager.clearPathfinders(asBukkitEntity());
+                        craftMob.getHandle().goalSelector.addGoal(0, new FloatGoal(craftMob.getHandle()));
+                        navigateToTarget();
+                        attackTarget();
+                        break;
                     }
                 }
             }
-        }.runTaskTimer(Main.instance,30L,30L);
+        }.runTaskTimer(Main.instance, 30L, 30L);
     }
 
     public void navigateToTarget() {
@@ -239,29 +245,32 @@ public class RpgMob implements RpgEntity, RpgDamageable {
                     if (contentRpgEntity.isAggressive()) {
                         searchTarget();
                     }
+                    rpgMob.getPathfinder().stopPathfinding();
+                    RpgEntityManager.clearPathfinders(asBukkitEntity());
+                    RpgEntityManager.initPathfinders(asBukkitEntity(), contentRpgEntity);
                     return;
                 }
-                if (getLocation().distanceSquared(getTarget().getLocation()) > contentRpgEntity.getAttackRange() * contentRpgEntity.getAttackRange()) {
+                if (getLocation().distanceSquared(getTarget().getLocation()) > (contentRpgEntity.getAttackRange() * contentRpgEntity.getAttackRange()) - 1.0) {
                     Bukkit.broadcastMessage("Ищет путь к цели!");
                     rpgMob.getHandle().getNavigation().moveTo(((CraftEntity) getTarget().asBukkitEntity()).getHandle(), 1.0);
+                    asBukkitEntity().lookAt(((LivingEntity) getTarget().asBukkitEntity()).getEyeLocation(), LookAnchor.EYES);
                 }
             }
 
-        }.runTaskTimer(Main.instance, 0,10L);
+        }.runTaskTimer(Main.instance, 0, 10L);
     }
 
     public void attackTarget() {
         attackRunnable = new BukkitRunnable() {
 
             public void run() {
-                if (getTarget() != null && getTarget().isValid()) {
-                    if (getLocation().distanceSquared(getTarget().getLocation()) <= contentRpgEntity.getAttackRange() * contentRpgEntity.getAttackRange()) {
-                        Bukkit.broadcastMessage("Пытается атаковать!");
-                        asBukkitEntity().swingMainHand();
-                        asBukkitEntity().lookAt(((LivingEntity)getTarget().asBukkitEntity()).getEyeLocation(), LookAnchor.EYES);
-                        attack(getTarget(), contentRpgEntity.getDamageStats().getPhysicalDamage());
-                    }
-                }
+                if (getTarget() == null || !getTarget().isValid()) return;
+                if (getLocation().distanceSquared(getTarget().getLocation()) > contentRpgEntity.getAttackRange() * contentRpgEntity.getAttackRange())
+                    return;
+                Bukkit.broadcastMessage("Пытается атаковать!");
+                asBukkitEntity().swingMainHand();
+                asBukkitEntity().lookAt(((LivingEntity) getTarget().asBukkitEntity()).getEyeLocation(), LookAnchor.EYES);
+                attack(getTarget(), contentRpgEntity.getDamageStats().getPhysicalDamage());
             }
 
         }.runTaskTimer(Main.instance, 0, getAttackDelay());
