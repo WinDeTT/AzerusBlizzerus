@@ -6,4 +6,5 @@ import org.windett.azerusBlizzerus.Main;
 public class NamespacedHelper {
 
     public static final NamespacedKey isCameraKey = new NamespacedKey(Main.instance, "isCamera");
+    public static final NamespacedKey isRegionToolAxeKey = new NamespacedKey(Main.instance, "isRegionToolAxe");
 }

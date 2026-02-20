@@ -9,6 +9,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.windett.azerusBlizzerus.command.camera.CameraCommand;
 import org.windett.azerusBlizzerus.command.context.ContextCommand;
 import org.windett.azerusBlizzerus.command.pathRecorder.PathRecorderCommand;
+import org.windett.azerusBlizzerus.command.regionzone.RegionZoneCommand;
 import org.windett.azerusBlizzerus.command.rpg.admin.RpgToolCommand;
 import org.windett.azerusBlizzerus.command.rpg.item.RecipeOpenCommand;
 import org.windett.azerusBlizzerus.content.contentBase.RpgItemBase;
@@ -79,11 +80,13 @@ public final class Main extends JavaPlugin {
         CameraCommand camCommand = new CameraCommand("camera", "Camera creation", "/camera", List.of("cam"));
         PathRecorderCommand pathRecCommand = new PathRecorderCommand("pathRecorder", "Path Recorder management", "/pathrec", List.of("pr"));
         RpgToolCommand rpgToolCommand = new RpgToolCommand("rpgTool", "Rpg management", "/rpg", List.of("rpg"));
+        RegionZoneCommand regionZoneCommand = new RegionZoneCommand("regionZone", "Zone management", "/regionzone", List.of("rz"));
         commandMap.register("azerusblizzerus", recipeOpenCommand);
         commandMap.register("azerusblizzerus", ctxCommand);
         commandMap.register("azerusblizzerus", camCommand);
         commandMap.register("azerusblizzerus", pathRecCommand);
         commandMap.register("azerusblizzerus", rpgToolCommand);
+        commandMap.register("azzerusblizzerus", regionZoneCommand);
 
         new BukkitRunnable() {
             public void run() {
