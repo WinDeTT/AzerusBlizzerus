@@ -5,10 +5,7 @@ import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.windett.azerusBlizzerus.Main;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RegionZone {
 
@@ -23,7 +20,7 @@ public class RegionZone {
         PVP
     }
 
-    private final Map<RegionFlag, Boolean> regionFlagMap = new HashMap<>();
+    private final EnumMap<RegionFlag, Boolean> regionFlagMap = new EnumMap<>(RegionFlag.class);
 
     private final List<Location> kickLocations = new ArrayList<>();
 
@@ -34,7 +31,7 @@ public class RegionZone {
         this.posB = posB;
 
         for (RegionFlag flag : RegionFlag.values()) {
-            regionFlagMap.put(flag, false);
+            setFlag(flag, false);
         }
         setFlag(RegionFlag.PVP, true);
 
@@ -45,7 +42,7 @@ public class RegionZone {
         regionFlagMap.put(flag, b);
     }
 
-    public boolean hasFlag(RegionFlag flag) {
+    public Object hasFlag(RegionFlag flag) {
         return regionFlagMap.get(flag);
     }
     public @NotNull String getRegionName() {

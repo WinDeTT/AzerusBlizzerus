@@ -11,19 +11,15 @@ import org.windett.azerusBlizzerus.events.custom.regionzone.RegionZoneJoinEvent;
 import org.windett.azerusBlizzerus.events.custom.regionzone.RegionZoneLeaveEvent;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class RegionZoneManager {
 
     private final Map<World, Map<String, RegionZone>> regionZoneMap = new HashMap<>();
-    private final ConcurrentMap<UUID, List<RegionZone>> entityRegions = new ConcurrentHashMap<>();
-    private final ConcurrentMap<UUID, Pair<Location, Location>> playerZoneCornerSelection = new ConcurrentHashMap<>();
-    private final List<Player> debugViewers = new ArrayList<>();
+    private final Map<UUID, List<RegionZone>> entityRegions = new HashMap<>();
+    private final Map<UUID, Pair<Location, Location>> playerZoneCornerSelection = new HashMap<>();
+    private final Set<UUID> debugViewers = new HashSet<>();
 
-    public RegionZoneManager() {
-        regionZoneMap.put(Bukkit.getWorld("world"), new HashMap<>());
-    }
+    public RegionZoneManager() {}
 
     public void registerRegion(@NotNull World world, RegionZone regionZone) {
         regionZoneMap.computeIfAbsent(world, k -> new HashMap<>())
@@ -120,15 +116,15 @@ public class RegionZoneManager {
     public Pair<Location, Location> getSelection(Player player) {
         return playerZoneCornerSelection.get(player.getUniqueId());
     }
-    public List<Player> getDebugViewers() {
-        return List.copyOf(debugViewers);
+    public Set<UUID> getDebugViewers() {
+        return Set.copyOf(debugViewers);
     }
     public void addDebugViewer(Player player) {
-        if (debugViewers.contains(player)) return;
-        debugViewers.add(player);
+        if (debugViewers.contains(player.getUniqueId())) return;
+        debugViewers.add(player.getUniqueId());
     }
     public void removeDebugViewer(Player player) {
-        if (!debugViewers.contains(player)) return;
-        debugViewers.remove(player);
+        if (!debugViewers.contains(player.getUniqueId())) return;
+        debugViewers.remove(player.getUniqueId());
     }
 }

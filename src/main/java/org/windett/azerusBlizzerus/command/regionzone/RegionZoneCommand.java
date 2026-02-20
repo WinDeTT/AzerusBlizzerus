@@ -17,6 +17,8 @@ import org.windett.azerusBlizzerus.persistenceData.NamespacedHelper;
 import org.windett.azerusBlizzerus.utils.regionzone.RegionZone;
 
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class RegionZoneCommand extends BukkitCommand {
     public RegionZoneCommand(@NotNull String name, @NotNull String description, @NotNull String usageMessage, @NotNull List<String> aliases) {
@@ -91,8 +93,8 @@ public class RegionZoneCommand extends BukkitCommand {
                 player.sendMessage(Component.text(formattedMessage));
             }
             case "debug" -> {
-                List<Player> debugViewers = Main.tweakManager.getRegionZoneManager().getDebugViewers();
-                if (!debugViewers.contains(player)) {
+                Set<UUID> debugViewers = Main.tweakManager.getRegionZoneManager().getDebugViewers();
+                if (!debugViewers.contains(player.getUniqueId())) {
                     Main.tweakManager.getRegionZoneManager().addDebugViewer(player);
                     player.sendMessage(Component.text("Включена отладка для регионов!"));
                 }
