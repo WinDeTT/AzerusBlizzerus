@@ -45,6 +45,9 @@ public class Cutscene_t1 {
                     case HYPER_TURBO -> {
                         camera.setShaking(5, Camera.ShakeIntensive.HYPER_TURBO);
                     }
+                    case CRAZY_KID -> {
+                        camera.setShaking(5, Camera.ShakeIntensive.CRAZY_KID);
+                    }
                     default -> {
                         camera.setShaking(0, null);
                     }

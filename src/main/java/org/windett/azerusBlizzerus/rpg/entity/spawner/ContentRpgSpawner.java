@@ -121,6 +121,9 @@ public class ContentRpgSpawner {
         }
     }
 
+    public String getWorldName() {
+        return world;
+    }
     public World getWorld() {
         return Bukkit.getWorld(world);
     }

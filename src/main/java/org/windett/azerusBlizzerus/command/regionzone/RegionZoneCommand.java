@@ -16,6 +16,7 @@ import org.windett.azerusBlizzerus.Main;
 import org.windett.azerusBlizzerus.persistenceData.NamespacedHelper;
 import org.windett.azerusBlizzerus.utils.regionzone.RegionZone;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -76,7 +77,7 @@ public class RegionZoneCommand extends BukkitCommand {
                     player.sendMessage(Component.text("Вы не выделили первую точку!"));
                     return true;
                 }
-                Main.tweakManager.getRegionZoneManager().registerRegion(player.getWorld(), new RegionZone(args[1], player.getWorld(), selection.first(), selection.second()));
+                Main.tweakManager.getRegionZoneManager().registerRegion(player.getWorld().getName(), new RegionZone(args[1], player.getWorld().getName(), selection.first(), selection.second()));
                 player.sendMessage(Component.text("Регион " + args[1] + " успешно создан!"));
             }
 
@@ -105,5 +106,25 @@ public class RegionZoneCommand extends BukkitCommand {
             }
         }
         return false;
+    }
+
+    @Override
+    public @NotNull List<String> tabComplete(@NotNull CommandSender sender,
+                                             @NotNull String alias,
+                                             @NotNull String @NotNull [] args) {
+
+        if (!(sender instanceof Player player)) {
+            return List.of();
+        }
+
+        if (args.length == 1) {
+            return Arrays.asList("check", "tool", "create", "remove", "pos1", "pos2", "debug");
+        }
+
+        if (args.length == 2) {
+
+        }
+
+        return List.of();
     }
 }

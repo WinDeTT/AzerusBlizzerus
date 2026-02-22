@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -74,14 +75,14 @@ public class RegionZoneListener implements Listener {
     @EventHandler
     public void joinZone(RegionZoneJoinEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        if (!Main.tweakManager.getRegionZoneManager().getDebugViewers().contains(player)) return;
+        if (!Main.tweakManager.getRegionZoneManager().getDebugViewers().contains(player.getUniqueId())) return;
         player.sendMessage(Component.text("Вы зашли в регион: " + event.getRegionZone().getRegionName()));
     }
 
     @EventHandler
     public void leaveZone(RegionZoneLeaveEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        if (!Main.tweakManager.getRegionZoneManager().getDebugViewers().contains(player)) return;
+        if (!Main.tweakManager.getRegionZoneManager().getDebugViewers().contains(player.getUniqueId())) return;
         player.sendMessage(Component.text("Вы вышли из региона: " + event.getRegionZone().getRegionName()));
     }
 }

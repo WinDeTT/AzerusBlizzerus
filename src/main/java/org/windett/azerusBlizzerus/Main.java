@@ -18,6 +18,7 @@ import org.windett.azerusBlizzerus.content.contentBase.RpgSpawnerBase;
 import org.windett.azerusBlizzerus.context.ContextListener;
 import org.windett.azerusBlizzerus.events.listeners.entity.EntityGlobalAttackListener;
 import org.windett.azerusBlizzerus.events.listeners.entity.player.PlayerListenerJoinQuit;
+import org.windett.azerusBlizzerus.events.listeners.server.WorldListener;
 import org.windett.azerusBlizzerus.rpg.RpgSystemManager;
 import org.windett.azerusBlizzerus.utils.pathRecorder.ScriptMoveListener;
 
@@ -63,12 +64,14 @@ public final class Main extends JavaPlugin {
         rpgMobBase.init();
         final RpgItemBase rpgItemBase = new RpgItemBase();
 
+        final WorldListener worldListener = new WorldListener();
         final PlayerListenerJoinQuit playerListenerJoinQuit = new PlayerListenerJoinQuit();
         final ScriptMoveListener scriptMoveListener = new ScriptMoveListener();
         final ContextListener ctxListen = new ContextListener();
         final EntityGlobalAttackListener entityGlobalAttackListener = new EntityGlobalAttackListener();
 
 
+        pm.registerEvents(worldListener, this);
         pm.registerEvents(playerListenerJoinQuit, this);
         pm.registerEvents(scriptMoveListener, this);
         pm.registerEvents(ctxListen, this);

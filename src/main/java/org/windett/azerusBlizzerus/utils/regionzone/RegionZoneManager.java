@@ -14,26 +14,31 @@ import java.util.*;
 
 public class RegionZoneManager {
 
-    private final Map<World, Map<String, RegionZone>> regionZoneMap = new HashMap<>();
+    private final Map<String, Map<String, RegionZone>> regionZoneMap = new HashMap<>();
     private final Map<UUID, List<RegionZone>> entityRegions = new HashMap<>();
     private final Map<UUID, Pair<Location, Location>> playerZoneCornerSelection = new HashMap<>();
     private final Set<UUID> debugViewers = new HashSet<>();
 
-    public RegionZoneManager() {}
+    public RegionZoneManager() {
+        regionZoneMap.put("world", new HashMap<>());
+    }
 
-    public void registerRegion(@NotNull World world, RegionZone regionZone) {
-        regionZoneMap.computeIfAbsent(world, k -> new HashMap<>())
+    public void registerRegion(String worldName, RegionZone regionZone) {
+        regionZoneMap.computeIfAbsent(worldName, k -> new HashMap<>())
                 .put(regionZone.getRegionName(), regionZone);
     }
 
-    public void unregisterRegion(@NotNull World world, RegionZone regionZone) {
-        Map<String, RegionZone> worldRegions = regionZoneMap.get(world);
+    public void unregisterRegion(String worldName, RegionZone regionZone) {
+        Map<String, RegionZone> worldRegions = regionZoneMap.get(worldName);
         if (worldRegions != null) {
             worldRegions.remove(regionZone.getRegionName());
         }
     }
 
     public boolean isRegionZone(@NotNull Location location, RegionZone regionZone) {
+        if (!location.getWorld().getName().equals(regionZone.getWorld().getName())) {
+            return false;
+        }
         double x = location.getX();
         double y = location.getY();
         double z = location.getZ();
@@ -58,10 +63,12 @@ public class RegionZoneManager {
                 z >= minZ && z <= maxZ;
     }
 
-    public List<RegionZone> getEntityCurrentRegions(@NotNull Entity entity) {
+    public List<RegionZone> getEntityCurrentRegions(Entity entity) {
+        if (entity == null || !entity.isValid()) return List.of();
         final World world = entity.getWorld();
+
         List<RegionZone> entityRegions = new ArrayList<>();
-        for (RegionZone zone : regionZoneMap.get(world).values()) {
+        for (RegionZone zone : regionZoneMap.get(world.getName()).values()) {
             if (!isEntityInRegion(entity, zone)) continue;
             entityRegions.add(zone);
         }

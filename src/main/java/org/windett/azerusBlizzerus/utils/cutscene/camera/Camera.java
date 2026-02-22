@@ -34,7 +34,8 @@ public class Camera {
         MEDIUM(3),
         HIGH(6),
         HYPER(10),
-        HYPER_TURBO(15);
+        HYPER_TURBO(15),
+        CRAZY_KID(25);
 
         public int getIntensiveAmount() {
             return intensiveAmount;

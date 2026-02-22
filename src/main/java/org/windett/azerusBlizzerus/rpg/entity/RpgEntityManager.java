@@ -103,12 +103,14 @@ public class RpgEntityManager {
 
     public static void clearPathfinders(LivingEntity entity) {
         CraftMob cm = (CraftMob) entity;
+        if (cm == null) return;
         cm.getHandle().goalSelector.removeAllGoals(goal -> true);
         cm.getHandle().targetSelector.removeAllGoals(goal -> true);
     }
 
     public static void initPathfinders(LivingEntity entity, ContentRpgEntity contentRpgEntity) {
         CraftMob craftMob = (CraftMob) entity;
+        if (craftMob == null) return;
         GoalSelector goalSelector = craftMob.getHandle().goalSelector;
         goalSelector.addGoal(0, new FloatGoal(craftMob.getHandle()));
         goalSelector.addGoal(1, new LookAtPlayerGoal(craftMob.getHandle(), Player.class, (float) contentRpgEntity.getAgroRange(), 0.05F));
