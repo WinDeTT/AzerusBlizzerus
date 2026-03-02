@@ -139,7 +139,7 @@ public class RpgMob implements RpgEntity, RpgDamageable {
             }
             RpgEntity rpgEntitMob = this;
             RpgEntity rpgEntityAttacker = (RpgEntity) attacker;
-            Bukkit.broadcastMessage("цель сущности " + rpgEntitMob.getName() + ":" + rpgEntityAttacker.getName());
+            Bukkit.getLogger().info("цель сущности " + rpgEntitMob.getName() + ":" + rpgEntityAttacker.getName());
         }
 
         List<RpgPlayer> nearestPlayers = getNearbyPlayers(35);
@@ -191,6 +191,7 @@ public class RpgMob implements RpgEntity, RpgDamageable {
         if (spawner != null) {
             spawner.setKilled();
         }
+        Main.rpgSystemManager.getRpgEntityManager().unregisterRpgEntity(this);
     }
 
     public void searchTarget() {
@@ -205,7 +206,7 @@ public class RpgMob implements RpgEntity, RpgDamageable {
                     searchRunnable = null;
                     return;
                 }
-                Bukkit.broadcastMessage("Сущность ищет цель!");
+                Bukkit.getLogger().info("Сущность ищет цель!");
                 sortedNearestPlayer = getNearbyPlayers(maxDistance);
                 if (sortedNearestPlayer != null) {
                     sortedNearestPlayer.sort(Comparator.comparingDouble(rp -> rp.getLocation().distanceSquared(getLocation())));
@@ -251,7 +252,7 @@ public class RpgMob implements RpgEntity, RpgDamageable {
                     return;
                 }
                 if (getLocation().distanceSquared(getTarget().getLocation()) > (contentRpgEntity.getAttackRange() * contentRpgEntity.getAttackRange()) - 1.0) {
-                    Bukkit.broadcastMessage("Ищет путь к цели!");
+                    Bukkit.getLogger().info("Ищет путь к цели!");
                     rpgMob.getHandle().getNavigation().moveTo(((CraftEntity) getTarget().asBukkitEntity()).getHandle(), 1.0);
                     asBukkitEntity().lookAt(((LivingEntity) getTarget().asBukkitEntity()).getEyeLocation(), LookAnchor.EYES);
                 }
@@ -267,7 +268,7 @@ public class RpgMob implements RpgEntity, RpgDamageable {
                 if (getTarget() == null || !getTarget().isValid()) return;
                 if (getLocation().distanceSquared(getTarget().getLocation()) > contentRpgEntity.getAttackRange() * contentRpgEntity.getAttackRange())
                     return;
-                Bukkit.broadcastMessage("Пытается атаковать!");
+                Bukkit.getLogger().info("Пытается атаковать!");
                 asBukkitEntity().swingMainHand();
                 asBukkitEntity().lookAt(((LivingEntity) getTarget().asBukkitEntity()).getEyeLocation(), LookAnchor.EYES);
                 attack(getTarget(), contentRpgEntity.getDamageStats().getPhysicalDamage());
@@ -333,10 +334,6 @@ public class RpgMob implements RpgEntity, RpgDamageable {
         return nearbyPlayers;
     }
 
-    @Override
-    public void handleUnregister() {
-        Main.rpgSystemManager.getRpgEntityManager().unregisterRpgEntity(this);
-    }
 
     @Override
     public void cleanup() {
@@ -352,7 +349,6 @@ public class RpgMob implements RpgEntity, RpgDamageable {
             attackRunnable.cancel();
             attackRunnable = null;
         }
-        handleUnregister();
     }
 
     public ContentRpgSpawner getSpawner() {

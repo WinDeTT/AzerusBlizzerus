@@ -16,5 +16,4 @@ public interface RpgEntity {
     World getWorld();
     Location getLocation();
     boolean isValid();
-    void handleUnregister();
 }

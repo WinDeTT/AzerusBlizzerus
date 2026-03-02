@@ -13,7 +13,7 @@ public class RpgMobBase {
         ContentRpgEntity cte = new ContentRpgEntity.Builder()
                 .id(1)
                 .name("Тестовый моб")
-                .type(EntityType.SKELETON)
+                .type(EntityType.SILVERFISH)
                 .specific(ContentRpgEntity.Specific.SIMPLE)
                 .level(1)
                 .xpLoot(0.075)

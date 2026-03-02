@@ -23,6 +23,7 @@ public class RpgPlayer implements RpgEntity, RpgDamageable {
     private final PlayerCharacter playerCharacter;
     private long attackDelay;
     private long lastAttackMillis;
+    private RpgMount mount;
 
     public RpgPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -142,7 +143,7 @@ public class RpgPlayer implements RpgEntity, RpgDamageable {
     @Override
     public boolean isValid() {
         if (!bukkitPlayer.isOnline()) {
-            handleUnregister();
+            Main.rpgSystemManager.getRpgEntityManager().unregisterRpgEntity(this);
         }
         return Main.rpgSystemManager.getRpgEntityManager().getRpgEntityContainerMap().containsKey(getUniqueId());
     }
@@ -162,13 +163,8 @@ public class RpgPlayer implements RpgEntity, RpgDamageable {
     }
 
     @Override
-    public void handleUnregister() {
-        Main.rpgSystemManager.getRpgEntityManager().unregisterRpgEntity(this);
-    }
-
-    @Override
     public void cleanup() {
-        handleUnregister();
+
     }
 
     public PlayerCharacter getPlayerCharacter() {
@@ -178,5 +174,13 @@ public class RpgPlayer implements RpgEntity, RpgDamageable {
         bukkitPlayer.setLevel(playerCharacter.getLevel());
         float progress = (float) (playerCharacter.getXp() / playerCharacter.getRequirementXp(getLevel()));
         bukkitPlayer.setExp(progress);
+    }
+
+    public void setMount(RpgMount mount) {
+        this.mount = mount;
+    }
+
+    public RpgMount getMount() {
+        return mount;
     }
 }
